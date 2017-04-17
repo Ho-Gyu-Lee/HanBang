@@ -12,5 +12,7 @@ public class CustomButton : Button
     public override void OnPointerDown(PointerEventData eventData)
     {
         base.OnPointerDown(eventData);
+
+        ButtonDown();
     }
 }

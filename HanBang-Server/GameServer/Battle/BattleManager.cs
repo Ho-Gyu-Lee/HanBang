@@ -1,37 +1,81 @@
-﻿using GameServer.Packet;
-using System;
+﻿using GameServer.Common.Packet;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameServer.Battle
 {
     class BattleManager
     {
-        private const float MIN_PLAYER_POSX = -19.1F;
+        private const float MIN_PLAYER_POSX = -19.0F;
         private const float MIN_PLAYER_POSY = -18.4F;
 
         private const float MAX_PLAYER_POSX = 17.8F;
         private const float MAX_PLAYER_POSY = 17.9F;
 
-        private const float PLAYER_SPEED = 0.5F;
+        private const float PLAYER_SPEED = 0.3F;
 
-        private const int PLAYER1_INDEX = 0;
-        private const int PLAYER2_INDEX = 1;
+        private BattleMember m_Member1 = null;
+        private BattleMember m_Member2 = null;
 
-        public void Update(BattleMember member)
+        public void SetBattleMember(int playerIndex, BattleMember member)
         {
-            // 매 프레임 마다 위치를 이동 시킨다.
-            UpdatePlayerPos(member);
+            switch(playerIndex)
+            {
+                case 0:
+                    m_Member1 = member;
+                    break;
+                case 1:
+                    m_Member2 = member;
+                    break;
+            }
         }
 
-        public void UpdatePlayerPos(BattleMember member)
+        public void Update()
         {
-            PosData pos = new PosData(member.m_PlayerPos);
+            // 매 프레임 마다 위치를 이동 시킨다.
+            UpdatePlayerMovePos(m_Member1);
+            UpdatePlayerMovePos(m_Member2);
+        }
 
+        public void UpdatePlayerMovePos(BattleMember member)
+        {
+            if(member != null)
+            {
+                PosData pos = new PosData(member.m_PlayerPos);
+
+                // 미리 이동 시켜 본다.
+                PlayerNextPosData(member.PlayerMoveType, ref pos);
+
+                // 우선 맵 충돌 체크를 한다.
+                bool isMemberMapCollision = CheckMapCollision(pos);
+
+                // 맵 안에 존재 하면 캐릭터 끼리 충돌 체크를 한다.
+                if(isMemberMapCollision)
+                {
+                    member.m_PlayerPos.m_X = pos.m_X;
+                    member.m_PlayerPos.m_Y = pos.m_Y;
+                }
+
+                // 모두 이상이 없다면 최종적으로 값을 변경 한다.
+            }
+        }
+
+        private bool CheckMapCollision(PosData pos)
+        {
+            if (pos.m_X > MIN_PLAYER_POSX &&
+                pos.m_X < MAX_PLAYER_POSX &&
+                pos.m_Y < MAX_PLAYER_POSY &&
+                pos.m_Y > MIN_PLAYER_POSY)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private void PlayerNextPosData(MOVE_TYPE moveType, ref PosData pos)
+        {
             // 우선 이동 처리를 한다.
-            switch (member.PlayerMoveType)
+            switch (moveType)
             {
                 case MOVE_TYPE.LEFT:
                     {
@@ -53,16 +97,6 @@ namespace GameServer.Battle
                         pos.m_Y += PLAYER_SPEED;
                     }
                     break;
-            }
-
-            // 맵 충돌 체크를 한다.
-            if (pos.m_X > MIN_PLAYER_POSX &&
-                pos.m_X < MAX_PLAYER_POSX &&
-                pos.m_Y < MAX_PLAYER_POSY &&
-                pos.m_Y > MIN_PLAYER_POSY)
-            {
-                member.m_PlayerPos.m_X = pos.m_X;
-                member.m_PlayerPos.m_Y = pos.m_Y;
             }
         }
     }

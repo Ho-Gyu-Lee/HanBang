@@ -4,7 +4,7 @@ using SuperSocket.SocketBase.Protocol;
 
 namespace GameServer
 {
-    class GameServer : AppServer<GameUserSession, PacketRequestInfo>
+    class GameServer : AppServer<GameSession, PacketRequestInfo>
     {
         public GameServer()
         : base(new DefaultReceiveFilterFactory<PacketReceiveFilter, PacketRequestInfo>())
@@ -12,7 +12,7 @@ namespace GameServer
 
         }
 
-        protected override void ExecuteCommand(GameUserSession session, PacketRequestInfo requestInfo)
+        protected override void ExecuteCommand(GameSession session, PacketRequestInfo requestInfo)
         {
             session.OnReceiveMessage(requestInfo.Type, requestInfo.Body);
         }

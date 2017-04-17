@@ -1,6 +1,4 @@
-﻿using GameServer.Packet;
-using System.Collections;
-using System.Collections.Generic;
+﻿using GameServer.Common.Packet;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,15 +23,15 @@ public class Player : MonoBehaviour
 
         CustomButton rightButton = GameObject.Find("Right").GetComponent<CustomButton>();
         rightButton.onClick.AddListener(delegate () { SendPlayerRightMove(); });
-        leftButton.ButtonDown += SendPlayerIdle;
+        rightButton.ButtonDown += SendPlayerIdle;
 
         CustomButton downButton = GameObject.Find("Down").GetComponent<CustomButton>();
         downButton.onClick.AddListener(delegate () { SendPlayerDownMove(); });
-        leftButton.ButtonDown += SendPlayerIdle;
+        downButton.ButtonDown += SendPlayerIdle;
 
         CustomButton upButton = GameObject.Find("Up").GetComponent<CustomButton>();
         upButton.onClick.AddListener(delegate () { SendPlayerUpMove(); });
-        leftButton.ButtonDown += SendPlayerIdle;
+        upButton.ButtonDown += SendPlayerIdle;
 
         Button attackButton = GameObject.Find("Attack").GetComponent<Button>();
         attackButton.onClick.AddListener(delegate () { SendPlayerAttack(); });
@@ -68,11 +66,11 @@ public class Player : MonoBehaviour
             Input.GetKeyUp(KeyCode.LeftArrow) ||
             Input.GetKeyUp(KeyCode.RightArrow))
         {
-            SendPlayerIdle();
+            //SendPlayerIdle();
         }
 
-        /*
-        Vector3 playerInfo = transform.transform.position + m_MovePostion;
+        
+        Vector3 playerInfo = transform.transform.position;
 
         // 카메라 충돌 체크
         Vector3 cameraPostion = m_Camera.transform.position;
@@ -87,7 +85,7 @@ public class Player : MonoBehaviour
         }
 
         m_Camera.transform.position = new Vector3(cameraPostion.x, cameraPostion.y, cameraPostion.z);
-
+        /*
         // 캐릭터 충돌 체크
         if (playerInfo.x > -19.1F && playerInfo.x < 17.8F && playerInfo.y < 17.9F && playerInfo.y > -18.4F)
         {
@@ -98,27 +96,27 @@ public class Player : MonoBehaviour
 
     public void SendPlayerLeftMove()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_MoveType = MOVE_TYPE.LEFT });
+        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_RoomIndex = 0, m_PlayerIndex = 0, m_MoveType = MOVE_TYPE.LEFT });
     }
 
     public void SendPlayerRightMove()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_MoveType = MOVE_TYPE.RIGHT });
+        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_RoomIndex = 0, m_PlayerIndex = 0, m_MoveType = MOVE_TYPE.RIGHT });
     }
 
     public void SendPlayerUpMove()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_MoveType = MOVE_TYPE.UP });
+        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_RoomIndex = 0, m_PlayerIndex = 0, m_MoveType = MOVE_TYPE.UP });
     }
 
     public void SendPlayerDownMove()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_MoveType = MOVE_TYPE.DOWN });
+        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_RoomIndex = 0, m_PlayerIndex = 0, m_MoveType = MOVE_TYPE.DOWN });
     }
 
     public void SendPlayerIdle()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_MoveType = MOVE_TYPE.NONE });
+        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_RoomIndex = 0, m_PlayerIndex = 0, m_MoveType = MOVE_TYPE.NONE });
     }
 
     public void SendPlayerAttack()

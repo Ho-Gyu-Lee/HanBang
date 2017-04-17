@@ -1,8 +1,7 @@
 ﻿using ClientNetworkEngine;
-using GameServer.Packet;
+using GameServer.Common.Packet;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 public class ClientNetworkManager : MonoBehaviour
@@ -56,8 +55,8 @@ public class ClientNetworkManager : MonoBehaviour
 
         m_PacketSendManager.SendHandler += m_Session.SendMsg;
 
-        m_PacketReceiveManager.SCMoveData += OnSCMoveData;
-        m_PacketReceiveManager.SCAttackData += OnAttackData;
+        m_PacketReceiveManager.SCMatchBattleRoom += OnSCMatchBattleRoom;
+        m_PacketReceiveManager.SCSyncBattleData += OnSCSyncBattleData;
     }
 	
 	// Update is called once per frame
@@ -67,7 +66,7 @@ public class ClientNetworkManager : MonoBehaviour
         {
             if (m_MessageDatas.Count > 0)
             {
-                while(m_MessageDatas.Count == 0)
+                while(m_MessageDatas.Count != 0)
                 {
                     MessageData data = m_MessageDatas.Dequeue();
                     m_PacketReceiveManager.OnReceiveMessage(data.m_MessageType, data.m_Message);
@@ -76,6 +75,11 @@ public class ClientNetworkManager : MonoBehaviour
         }
 	}
 
+    void ApplicationQuit()
+    {
+        m_Session.Close();
+    }
+
     public void Connection()
     {
         m_Session.Connect("127.0.0.1", 10001);
@@ -83,7 +87,7 @@ public class ClientNetworkManager : MonoBehaviour
 
     private void OnCompletConnectedToServer(object sender, EventArgs e)
     {
-
+        SendManager.SendCSMatchBattleRoom();
     }
 
     private void OnClosedToServer(object sender, EventArgs e)
@@ -104,13 +108,16 @@ public class ClientNetworkManager : MonoBehaviour
         }
     }
 
-    private void OnSCMoveData(SCMoveData data)
+    private void OnSCMatchBattleRoom(SCMatchBattleRoom data)
     {
-
+        GameManager.Instance.InitializePlayer(data.m_PlayerIndex);
     }
 
-    private void OnAttackData(SCAttackData data)
+    private void OnSCSyncBattleData(SCSyncBattleData data)
     {
-
+        foreach(BattleMemberData member in data.m_BattleMemberDatas.Values)
+        {
+            GameManager.Instance.OnPlayerMove(member.m_PlayerIndex, member.m_MoveType, member.m_Pos);
+        }
     }
 }

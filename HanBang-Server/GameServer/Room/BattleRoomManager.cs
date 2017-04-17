@@ -1,13 +1,11 @@
-﻿using System;
+﻿using GameServer.Common.Util;
+using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameServer.Room
 {
-    class BattleRoomManager
+    class BattleRoomManager : ThreadSafeSingleton<BattleRoomManager>
     {
         private ConcurrentDictionary<int, BattleRoom> m_BattleRooms = new ConcurrentDictionary<int, BattleRoom>();
 
@@ -22,17 +20,26 @@ namespace GameServer.Room
             }
         }
 
-        public void MatchBattleRoom(GameUserSession gameUserSession)
+        public BattleRoom GetBattleRoom(int roomIndex)
+        {
+            BattleRoom battleRoom = null;
+            if(m_BattleRooms.ContainsKey(roomIndex))
+            {
+                battleRoom = m_BattleRooms[roomIndex];
+            }
+            return battleRoom;
+        }
+
+        public void MatchBattleRoom(GameSession gameUserSession, ref int roomIndex, ref int playerIndex)
         {
             BattleRoom battleRoom = m_BattleRooms.Where(rooms => rooms.Value.MemberCount == 1).FirstOrDefault().Value;
 
             if(battleRoom != null)
             {
-                battleRoom.JoinBattleRoom(gameUserSession);
+                battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex);
                 return;
             }
 
-            int roomIndex = -1;
             if(!m_BattleRoomIndexs.TryDequeue(out roomIndex))
             {
                 Console.WriteLine("Failed Battle Room Index");
@@ -52,7 +59,7 @@ namespace GameServer.Room
                 return;
             }
 
-            battleRoom.JoinBattleRoom(gameUserSession);
+            battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex);
         }
 
         public void CloseBattle(int roomIndex)

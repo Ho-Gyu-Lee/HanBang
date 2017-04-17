@@ -1,9 +1,5 @@
-﻿using GameServer.Packet;
+﻿using GameServer.Common.Packet;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameServer.Battle
 {
@@ -35,12 +31,12 @@ namespace GameServer.Battle
 
         public int PlayerIndex { get; private set; }
 
-        public string m_SessionID = String.Empty;
+        public GameSession GameSession { get; private set; }
 
-        public BattleMember(string sessionID, int playerIndex)
+        public BattleMember(int playerIndex, GameSession session)
         {
-            m_SessionID = sessionID;
             PlayerIndex = playerIndex;
+            GameSession = session;
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using MsgPack.Serialization;
 using System.IO;
 
-namespace GameServer.Packet
+namespace GameServer.Common.Packet
 {
     public class PacketReceiveManager
     {
@@ -10,14 +10,11 @@ namespace GameServer.Packet
         public delegate void OnCSMoveDataDelegate(CSMoveData data);
         public OnCSMoveDataDelegate CSMoveData;
 
-        public delegate void OnSCMoveDataDelegate(SCMoveData data);
-        public OnSCMoveDataDelegate SCMoveData;
+        public delegate void OnCSAttacDataDelegate();
+        public OnCSAttacDataDelegate CSAttackData;
 
-        public delegate void OnCSAttacDatakDelegate();
-        public OnCSAttacDatakDelegate CSAttackData;
-
-        public delegate void OnSCAttackDataDelegate(SCAttackData data);
-        public OnSCAttackDataDelegate SCAttackData;
+        public delegate void OnSCSyncBattleData(SCSyncBattleData data);
+        public OnSCSyncBattleData SCSyncBattleData;
 
         public delegate void OnCSMatchBattleRoomDelegate();
         public OnCSMatchBattleRoomDelegate CSMatchBattleRoom;
@@ -40,23 +37,16 @@ namespace GameServer.Packet
                     }
                     break;
 
-                case PACKET_TYPE.SC_MOVE:
-                    {
-                        MessagePackSerializer<SCMoveData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCMoveData>();
-                        SCMoveData(derializer.Unpack(m_MemStream));
-                    }
-                    break;
-
                 case PACKET_TYPE.CS_ATTACK:
                     {
                         CSAttackData();
                     }
                     break;
 
-                case PACKET_TYPE.SC_ATTACK:
+                case PACKET_TYPE.SC_SYNC_BATTLE:
                     {
-                        MessagePackSerializer<SCAttackData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCAttackData>();
-                        SCAttackData(derializer.Unpack(m_MemStream));
+                        MessagePackSerializer<SCSyncBattleData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCSyncBattleData>();
+                        SCSyncBattleData(derializer.Unpack(m_MemStream));
                     }
                     break;
 

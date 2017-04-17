@@ -1,9 +1,5 @@
 ﻿using SuperSocket.SocketBase.Config;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SuperSocket.SocketBase.Logging;
 
 namespace EchoServer
 {
@@ -17,12 +13,11 @@ namespace EchoServer
             {
                 Ip          = "Any",
                 Port        = 10001,
-                LogFactory  = "ConsoleLogFactory",
                 SendingQueueSize = 100,
             };
 
             //서버 설정 셋업
-            server.Setup(serverConfig);
+            server.Setup(serverConfig, logFactory: new ConsoleLogFactory());
 
             //서버 시작
             if (false == server.Start())

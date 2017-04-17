@@ -1,17 +1,18 @@
-﻿using GameServer.Packet;
+﻿using GameServer.Common.Packet;
 using GameServer.Protocol;
 using SuperSocket.SocketBase;
 using System;
-using System.IO;
 
 namespace GameServer
 {
-    class GameUserSession : AppSession<GameUserSession, PacketRequestInfo>
+    class GameSession : AppSession<GameSession, PacketRequestInfo>
     {
         private PacketReceiveManager m_PacketReceiveManager = new PacketReceiveManager();
         private PacketSendManager m_PacketSendManager = new PacketSendManager();
 
-        public GameUserSession()
+        public PacketSendManager SendManager { get { return m_PacketSendManager; } }
+
+        public GameSession()
             : base()
         {
             m_PacketSendManager.SendHandler += SendMsg;
@@ -55,7 +56,14 @@ namespace GameServer
 
         private void OnCSMoveData(CSMoveData data)
         {
-            
+            Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(data.m_RoomIndex);
+            if(battleRoom == null)
+            {
+                Console.WriteLine("Not Find Battle Room");
+                return;
+            }
+
+            battleRoom.ChangeMemberMoveType(data.m_PlayerIndex, data.m_MoveType);
         }
 
         private void OnCSAttackData()
@@ -65,7 +73,10 @@ namespace GameServer
 
         private void OnMatchBattleRoom()
         {
+            SCMatchBattleRoom data = new SCMatchBattleRoom();
+            Room.BattleRoomManager.Instance.MatchBattleRoom(this, ref data.m_RoomIndex, ref data.m_PlayerIndex);
 
+            SendManager.SendSCMatchBattleRoom(data);
         }
     }
 }
