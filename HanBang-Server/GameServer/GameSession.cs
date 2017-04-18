@@ -17,9 +17,10 @@ namespace GameServer
         {
             m_PacketSendManager.SendHandler += SendMsg;
 
-            m_PacketReceiveManager.CSMoveData        += OnCSMoveData;
-            m_PacketReceiveManager.CSAttackData      += OnCSAttackData;
-            m_PacketReceiveManager.CSMatchBattleRoom += OnMatchBattleRoom;
+            m_PacketReceiveManager.CSMoveData         += OnCSMoveData;
+            m_PacketReceiveManager.CSAttackData       += OnCSAttackData;
+            m_PacketReceiveManager.CSMatchBattleRoom  += OnMatchBattleRoom;
+            m_PacketReceiveManager.CSBattleMemberData += OnBattleMemberData;
         }
 
         protected override void OnSessionClosed(CloseReason reason)
@@ -84,6 +85,18 @@ namespace GameServer
             Room.BattleRoomManager.Instance.MatchBattleRoom(this, ref data.m_RoomIndex);
 
             SendManager.SendSCMatchBattleRoomData(data);
+        }
+
+        private void OnBattleMemberData(CSBattleMemberData data)
+        {
+            Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(data.m_RoomIndex);
+            if (battleRoom == null)
+            {
+                Console.WriteLine("Not Find Battle Room");
+                return;
+            }
+
+            battleRoom.OnBattleMemberData();
         }
     }
 }

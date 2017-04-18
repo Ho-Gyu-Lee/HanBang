@@ -74,15 +74,26 @@ namespace GameServer.Common.Packet
             SendHandler((int)PACKET_TYPE.SC_MATCH_BATTLE_ROOM, MemStream.GetBuffer(), (int)MemStream.Length);
         }
 
-        public void SendSCBattleMemberSpawnData(SCBattleMemberSpawnData data)
+        public void SendCSBattleMemberData(CSBattleMemberData data)
         {
             MemStream.SetLength(0);
             MemStream.Position = 0;
 
-            MessagePackSerializer<SCBattleMemberSpawnData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCBattleMemberSpawnData>();
+            MessagePackSerializer<CSBattleMemberData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSBattleMemberData>();
             serializer.Pack(MemStream, data);
 
-            SendHandler((int)PACKET_TYPE.SC_BATTLE_MEMBER_SPAWN, MemStream.GetBuffer(), (int)MemStream.Length);
+            SendHandler((int)PACKET_TYPE.CS_BATTLE_MEMBER_DATA, MemStream.GetBuffer(), (int)MemStream.Length);
+        }
+
+        public void SendSCBattleMemberData(SCBattleMemberData data)
+        {
+            MemStream.SetLength(0);
+            MemStream.Position = 0;
+
+            MessagePackSerializer<SCBattleMemberData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCBattleMemberData>();
+            serializer.Pack(MemStream, data);
+
+            SendHandler((int)PACKET_TYPE.SC_BATTLE_MEMBER_DATA, MemStream.GetBuffer(), (int)MemStream.Length);
         }
     }
 }

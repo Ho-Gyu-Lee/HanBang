@@ -59,19 +59,19 @@ namespace GameServer.Battle
         {
             if(member != null)
             {
-                PosData pos = new PosData(member.m_PlayerPos);
+                PosData pos = new PosData(member.MemberPos);
 
                 // 미리 이동 시켜 본다.
-                PlayerNextPosData(member.PlayerMoveType, ref pos);
+                PlayerNextPosData(member.MemberMoveType, ref pos);
 
                 // 우선 맵 충돌 체크를 한다.
                 bool isMemberMapCollision = CheckMapCollision(pos);
 
                 // 맵 안에 존재 하면 캐릭터 끼리 충돌 체크를 한다.
-                if(isMemberMapCollision)
+                if (isMemberMapCollision)
                 {
-                    member.m_PlayerPos.m_X = pos.m_X;
-                    member.m_PlayerPos.m_Y = pos.m_Y;
+                    member.MemberPos.m_X = pos.m_X;
+                    member.MemberPos.m_Y = pos.m_Y;
                 }
 
                 // 모두 이상이 없다면 최종적으로 값을 변경 한다.

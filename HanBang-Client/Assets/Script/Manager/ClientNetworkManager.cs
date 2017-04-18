@@ -55,9 +55,9 @@ public class ClientNetworkManager : MonoBehaviour
 
         m_PacketSendManager.SendHandler += m_Session.SendMsg;
 
-        m_PacketReceiveManager.SCMatchBattleRoomData   += OnSCMatchBattleRoomData;
-        m_PacketReceiveManager.SCBattleMemberSpawnData += OnSCBattleMemberSpawnData;
-        m_PacketReceiveManager.SCSyncBattleData        += OnSCSyncBattleData;
+        m_PacketReceiveManager.SCMatchBattleRoomData += OnSCMatchBattleRoomData;
+        m_PacketReceiveManager.SCBattleMemberData    += OnSCBattleMemberData;
+        m_PacketReceiveManager.SCSyncBattleData      += OnSCSyncBattleData;
     }
 	
 	// Update is called once per frame
@@ -112,11 +112,23 @@ public class ClientNetworkManager : MonoBehaviour
     private void OnSCMatchBattleRoomData(SCMatchBattleRoomData data)
     {
         GameManager.Instance.InitializeBattleRoom(data.m_RoomIndex);
+
+        SendManager.SendCSBattleMemberData(new CSBattleMemberData() { m_RoomIndex = data.m_RoomIndex });
     }
 
-    private void OnSCBattleMemberSpawnData(SCBattleMemberSpawnData data)
+    private void OnSCBattleMemberData(SCBattleMemberData data)
     {
-
+        foreach(BattleMemberData member in data.m_BattleMemberDatas.Values)
+        {
+            if(member.m_PlayerIndex == data.m_MyPlayerIndex)
+            {
+                GameManager.Instance.OnPlayerSpawn(member.m_PlayerIndex, member.m_Pos);
+            }
+            else
+            {
+                GameManager.Instance.OnEnemySpawn(member.m_PlayerIndex, member.m_Pos);
+            }
+        }
     }
 
     private void OnSCSyncBattleData(SCSyncBattleData data)

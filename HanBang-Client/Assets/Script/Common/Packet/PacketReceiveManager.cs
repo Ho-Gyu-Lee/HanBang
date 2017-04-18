@@ -22,8 +22,11 @@ namespace GameServer.Common.Packet
         public delegate void OnSCMatchBattleRoomDataDelegate(SCMatchBattleRoomData data);
         public OnSCMatchBattleRoomDataDelegate SCMatchBattleRoomData;
 
-        public delegate void OnSCBattleMemberSpawnDataDelegate(SCBattleMemberSpawnData data);
-        public OnSCBattleMemberSpawnDataDelegate SCBattleMemberSpawnData;
+        public delegate void OnCSBattleMemberDataDelegate(CSBattleMemberData data);
+        public OnCSBattleMemberDataDelegate CSBattleMemberData;
+
+        public delegate void OnSCBattleMemberDataDelegate(SCBattleMemberData data);
+        public OnSCBattleMemberDataDelegate SCBattleMemberData;
 
         public void OnReceiveMessage(int type, byte[] body)
         {
@@ -67,10 +70,17 @@ namespace GameServer.Common.Packet
                     }
                     break;
 
-                case PACKET_TYPE.SC_BATTLE_MEMBER_SPAWN:
+                case PACKET_TYPE.CS_BATTLE_MEMBER_DATA:
                     {
-                        MessagePackSerializer<SCBattleMemberSpawnData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCBattleMemberSpawnData>();
-                        SCBattleMemberSpawnData(derializer.Unpack(m_MemStream));
+                        MessagePackSerializer<CSBattleMemberData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSBattleMemberData>();
+                        CSBattleMemberData(derializer.Unpack(m_MemStream));
+                    }
+                    break;
+
+                case PACKET_TYPE.SC_BATTLE_MEMBER_DATA:
+                    {
+                        MessagePackSerializer<SCBattleMemberData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCBattleMemberData>();
+                        SCBattleMemberData(derializer.Unpack(m_MemStream));
                     }
                     break;
             }

@@ -22,6 +22,12 @@ public class Player : MonoBehaviour
 
         m_AttackData.m_RoomIndex   = roomIndex;
         m_AttackData.m_PlayerIndex = playerIndex;
+
+        if(playerIndex == 1)
+        {
+            m_IsPlayerRotation = true;
+            transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+        }
     }
 
     // Use this for initialization
@@ -112,6 +118,12 @@ public class Player : MonoBehaviour
         if (m_MoveData.m_MoveType == MOVE_TYPE.LEFT) return;
 
         m_MoveData.m_MoveType = MOVE_TYPE.LEFT;
+
+        if(m_IsPlayerRotation == false)
+        {
+            transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+        }
+
         m_PlayerAnimator.SetInteger("ActionControll", 1);
 
         ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
@@ -123,6 +135,12 @@ public class Player : MonoBehaviour
         if (m_MoveData.m_MoveType == MOVE_TYPE.RIGHT) return;
 
         m_MoveData.m_MoveType = MOVE_TYPE.RIGHT;
+
+        if(m_IsPlayerRotation)
+        {
+            transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+        }
+
         m_PlayerAnimator.SetInteger("ActionControll", 1);
 
         ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);

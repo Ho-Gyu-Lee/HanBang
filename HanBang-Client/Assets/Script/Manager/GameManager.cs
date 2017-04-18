@@ -28,19 +28,18 @@ public class GameManager : MonoBehaviour
     private GameObject m_Player1 = null;
     private GameObject m_Player2 = null;
 
+    private List<string> m_CharacterResourcesName = new List<string>();
+
     public int RoomIndex { get; private set; }
+
+    public int PlayerIndex { get; private set; }
 
     public GameObject Player(int playerIndex)
     {
-        switch (playerIndex)
-        {
-            case 0:
-                return m_Player1;
-            case 1:
-                return m_Player2;
-        }
-
-        return null;
+        if (PlayerIndex == playerIndex)
+            return m_Player1;
+        else
+            return m_Player2;
     }
 
     void Awake()
@@ -57,6 +56,12 @@ public class GameManager : MonoBehaviour
             GameObject gameobject = prefab as GameObject;
             m_Characters.Add(gameobject.name, gameobject);
         }
+
+        // 임시 캐릭터 리소스
+        m_CharacterResourcesName.Add("Rogue_06");
+        m_CharacterResourcesName.Add("Rogue_01");
+
+        Application.runInBackground = true;
     }
 
     // Update is called once per frame
@@ -72,7 +77,11 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerSpawn(int playerIndex, PosData pos)
     {
-        m_Player1 = Instantiate(m_Characters["Rogue_06"], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
+        if (m_Player1 != null) return;
+
+        PlayerIndex = playerIndex;
+
+        m_Player1 = Instantiate(m_Characters[m_CharacterResourcesName[playerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
         m_Player1.transform.localScale = new Vector3(0.23F, 0.23F, 1);
         m_Player1.AddComponent<Player>();
 
@@ -80,10 +89,29 @@ public class GameManager : MonoBehaviour
         script.InitializeMoveData(RoomIndex, playerIndex);
     }
 
+    public void OnEnemySpawn(int playerIndex, PosData pos)
+    {
+        if (m_Player2 != null) return;
+
+        m_Player2 = Instantiate(m_Characters[m_CharacterResourcesName[playerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
+        m_Player2.transform.localScale = new Vector3(0.23F, 0.23F, 1);
+        m_Player2.AddComponent<Enemy>();
+
+        Enemy script = m_Player2.GetComponent<Enemy>();
+        script.Initialize(playerIndex);
+    }
+
     public void OnPlayerMove(int playerIndex, MOVE_TYPE moveType, PosData data)
     {
         GameObject player = Player(playerIndex);
         if(player != null)
+        {
+            if (PlayerIndex != playerIndex)
+            {
+                Enemy script = player.GetComponent<Enemy>();
+                script.OnChageAnimation(moveType);
+            }
             player.transform.position = new Vector3(data.m_X, data.m_Y, 0);
+        }
     }
 }

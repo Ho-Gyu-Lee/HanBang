@@ -1,50 +1,42 @@
 ﻿using GameServer.Common.Packet;
 using System;
+using System.Collections.Concurrent;
 
 namespace GameServer.Battle
 {
     class BattleMember
     {
-        public PosData m_PlayerPos = null;
+        private BattleMemberData m_BattleMemberData = new BattleMemberData();
 
-        private object m_MoveTypeLock = new object();
-        private MOVE_TYPE m_PlayerMoveType = MOVE_TYPE.NONE;
+        public BattleMemberData BattleMemberData { get { return m_BattleMemberData; } }
 
-        public MOVE_TYPE PlayerMoveType
-        {
-            get
-            {
-                lock(m_MoveTypeLock)
-                {
-                    return m_PlayerMoveType;
-                }
-            }
-
-            set
-            {
-                lock(m_MoveTypeLock)
-                {
-                    m_PlayerMoveType = value;
-                }
-            }
-        }
-
-        public int PlayerIndex { get; private set; }
+        public int PlayerIndex { get { return m_BattleMemberData.m_PlayerIndex; } }
 
         public GameSession GameSession { get; private set; }
 
+        public PosData MemberPos { get { return m_BattleMemberData.m_Pos; } }
+
+        public MOVE_TYPE MemberMoveType
+        {
+            get { return m_BattleMemberData.m_MoveType; }
+            set { m_BattleMemberData.m_MoveType = value; }
+        }
+
+        public ConcurrentQueue<MOVE_TYPE> m_InputQueue = new ConcurrentQueue<MOVE_TYPE>();
+
         public BattleMember(int playerIndex, GameSession session)
         {
-            PlayerIndex = playerIndex;
             GameSession = session;
+
+            m_BattleMemberData.m_PlayerIndex = playerIndex;
 
             switch (playerIndex)
             {
                 case 0:
-                    m_PlayerPos = new PosData(-6.0F, 0.0F);
+                    m_BattleMemberData.m_Pos = new PosData(-6.0F, 0.0F);
                     break;
                 case 1:
-                    m_PlayerPos = new PosData(6.0F, 0.0F);
+                    m_BattleMemberData.m_Pos = new PosData(6.0F, 0.0F);
                     break;
             }
         }

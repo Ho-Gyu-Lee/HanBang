@@ -12,7 +12,8 @@ namespace GameServer.Common.Packet
         SC_SYNC_BATTLE,
         CS_MATCH_BATTLE_ROOM,
         SC_MATCH_BATTLE_ROOM,
-        SC_BATTLE_MEMBER_SPAWN,
+        CS_BATTLE_MEMBER_DATA,
+        SC_BATTLE_MEMBER_DATA,
     }
 
     [MessagePackEnum]
@@ -97,9 +98,17 @@ namespace GameServer.Common.Packet
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
         public int m_RoomIndex = -1;
+
+        // 추후 맵 정보도 여기다가 담아서 보낼거야
     }
 
-    public class SCBattleMemberSpawnData
+    public class CSBattleMemberData
+    {
+        [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
+        public int m_RoomIndex = -1;
+    }
+
+    public class SCBattleMemberData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
         public int m_MyPlayerIndex = -1;

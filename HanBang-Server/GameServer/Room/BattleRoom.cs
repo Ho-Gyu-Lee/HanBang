@@ -1,12 +1,7 @@
 ﻿using GameServer.Battle;
 using GameServer.Common.Packet;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace GameServer.Room
 {
@@ -31,6 +26,21 @@ namespace GameServer.Room
             m_RoomIndex = roomIndex;
         }
 
+        public void OnBattleMemberData()
+        {
+            SCBattleMemberData data = new SCBattleMemberData();
+            foreach (BattleMember member in m_BattleMembers.Values)
+            {
+                data.m_BattleMemberDatas.Add(member.PlayerIndex, member.BattleMemberData);
+            }
+
+            foreach (BattleMember member in m_BattleMembers.Values)
+            {
+                data.m_MyPlayerIndex = member.PlayerIndex;
+                member.GameSession.SendManager.SendSCBattleMemberData(data);
+            }
+        }
+
         public void Update(object state)
         {
             lock(state)
@@ -41,13 +51,7 @@ namespace GameServer.Room
                 syncBattleData.m_Frame = m_Frame;
                 foreach (BattleMember member in m_BattleMembers.Values)
                 {
-                    syncBattleData.m_BattleMemberDatas.Add(member.PlayerIndex, new Common.Packet.BattleMemberData()
-                    {
-                        m_PlayerIndex = member.PlayerIndex,
-                        IsDie         = false,
-                        m_MoveType    = member.PlayerMoveType,
-                        m_Pos         = member.m_PlayerPos
-                    });
+                    syncBattleData.m_BattleMemberDatas.Add(member.PlayerIndex, member.BattleMemberData);
                 }
 
                 foreach (BattleMember member in m_BattleMembers.Values)
@@ -63,36 +67,15 @@ namespace GameServer.Room
         {
             roomIndex   = m_RoomIndex;
 
-            int playerIndex = MemberCount;
-
             BattleMember member = new BattleMember(MemberCount, session);
+            m_BattleMembers.TryAdd(member.PlayerIndex, member);
+            m_BattleManager.SetBattleMember(member.PlayerIndex, member);
 
-            m_BattleMembers.TryAdd(playerIndex, member);
-            m_BattleManager.SetBattleMember(playerIndex, member);
-
-            SCBattleMemberSpawnData data = new SCBattleMemberSpawnData();
-            data.m_MyPlayerIndex = member.PlayerIndex;
-            foreach (BattleMember battleMember in m_BattleMembers.Values)
-            {
-                data.m_BattleMemberDatas.Add(battleMember.PlayerIndex, new Common.Packet.BattleMemberData()
-                {
-                    m_PlayerIndex = battleMember.PlayerIndex,
-                    IsDie         = false,
-                    m_MoveType    = battleMember.PlayerMoveType,
-                    m_Pos         = battleMember.m_PlayerPos
-                });
-            }
-
-            foreach (BattleMember battleMember in m_BattleMembers.Values)
-            {
-                member.GameSession.SendManager.SendSCBattleMemberSpawnData(data);
-            }
-
-            if(MemberCount == MAX_MEMBER_COUNT)
-            {
+            //if(MemberCount == MAX_MEMBER_COUNT)
+            //{
                 if (m_BattleRoomTimer == null)
                     m_BattleRoomTimer = new System.Threading.Timer(Update, new object(), 0, 1000 / 60);
-            }
+            //}
         }
 
         public void CloseBattle()
@@ -109,7 +92,7 @@ namespace GameServer.Room
         {
             if (m_BattleMembers.ContainsKey(playerIndex))
             {
-                m_BattleMembers[playerIndex].PlayerMoveType = moveType;
+                m_BattleMembers[playerIndex].MemberMoveType = moveType;
             }
         }
 
