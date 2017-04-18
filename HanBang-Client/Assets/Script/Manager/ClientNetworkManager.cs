@@ -116,7 +116,7 @@ public class ClientNetworkManager : MonoBehaviour
 
     private void OnSCBattleMemberSpawnData(SCBattleMemberSpawnData data)
     {
-        GameManager.Instance.InitializePlayer
+
     }
 
     private void OnSCSyncBattleData(SCSyncBattleData data)
