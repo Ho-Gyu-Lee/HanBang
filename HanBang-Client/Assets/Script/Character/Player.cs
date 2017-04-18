@@ -8,7 +8,21 @@ public class Player : MonoBehaviour
 
     private GameObject m_Camera = null;
 
-    private bool m_PlayerIdele = false;
+    private bool m_IsAttackAnimation = false;
+    private bool m_IsPlayerRotation  = false;
+
+    private CSMoveData   m_MoveData   = new CSMoveData();
+    private CSAttackData m_AttackData = new CSAttackData();
+
+    public void InitializeMoveData(int roomIndex, int playerIndex)
+    {
+        m_MoveData.m_PlayerIndex = playerIndex;
+        m_MoveData.m_RoomIndex   = roomIndex;
+        m_MoveData.m_MoveType    = MOVE_TYPE.NONE;
+
+        m_AttackData.m_RoomIndex   = roomIndex;
+        m_AttackData.m_PlayerIndex = playerIndex;
+    }
 
     // Use this for initialization
     void Start ()
@@ -18,20 +32,20 @@ public class Player : MonoBehaviour
 
         // UI Setting
         CustomButton leftButton = GameObject.Find("Left").GetComponent<CustomButton>();
-        leftButton.onClick.AddListener(delegate () { SendPlayerLeftMove(); });
-        leftButton.ButtonDown += SendPlayerIdle;
+        leftButton.ButtonDown += SendPlayerLeftMove;
+        leftButton.ButtonUp   += SendPlayerIdle;
 
         CustomButton rightButton = GameObject.Find("Right").GetComponent<CustomButton>();
-        rightButton.onClick.AddListener(delegate () { SendPlayerRightMove(); });
-        rightButton.ButtonDown += SendPlayerIdle;
+        rightButton.ButtonDown += SendPlayerRightMove;
+        rightButton.ButtonUp   += SendPlayerIdle;
 
         CustomButton downButton = GameObject.Find("Down").GetComponent<CustomButton>();
-        downButton.onClick.AddListener(delegate () { SendPlayerDownMove(); });
-        downButton.ButtonDown += SendPlayerIdle;
+        downButton.ButtonDown += SendPlayerDownMove;
+        downButton.ButtonUp   += SendPlayerIdle;
 
         CustomButton upButton = GameObject.Find("Up").GetComponent<CustomButton>();
-        upButton.onClick.AddListener(delegate () { SendPlayerUpMove(); });
-        upButton.ButtonDown += SendPlayerIdle;
+        upButton.ButtonDown += SendPlayerUpMove;
+        upButton.ButtonUp   += SendPlayerIdle;
 
         Button attackButton = GameObject.Find("Attack").GetComponent<Button>();
         attackButton.onClick.AddListener(delegate () { SendPlayerAttack(); });
@@ -48,27 +62,26 @@ public class Player : MonoBehaviour
         {
             SendPlayerUpMove();
         }
-        else if (Input.GetKeyDown(KeyCode.DownArrow))
+
+        if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             SendPlayerDownMove();
         }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             SendPlayerLeftMove();
         }
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
+
+        if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             SendPlayerRightMove();
         }
 
-        if (Input.GetKeyUp(KeyCode.UpArrow)   ||
-            Input.GetKeyUp(KeyCode.DownArrow) ||
-            Input.GetKeyUp(KeyCode.LeftArrow) ||
-            Input.GetKeyUp(KeyCode.RightArrow))
+        if (!Input.anyKey)
         {
-            //SendPlayerIdle();
+            SendPlayerIdle();
         }
-
         
         Vector3 playerInfo = transform.transform.position;
 
@@ -85,42 +98,74 @@ public class Player : MonoBehaviour
         }
 
         m_Camera.transform.position = new Vector3(cameraPostion.x, cameraPostion.y, cameraPostion.z);
-        /*
-        // 캐릭터 충돌 체크
-        if (playerInfo.x > -19.1F && playerInfo.x < 17.8F && playerInfo.y < 17.9F && playerInfo.y > -18.4F)
+
+        // 공격 모션 완료
+        if (!m_PlayerAnimator.GetCurrentAnimatorStateInfo(0).IsName("Rogue_attack_02"))
         {
-            transform.transform.position = new Vector3(playerInfo.x, playerInfo.y, playerInfo.z);
+            m_IsAttackAnimation = false;
         }
-        */
     }
 
     public void SendPlayerLeftMove()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_RoomIndex = 0, m_PlayerIndex = 0, m_MoveType = MOVE_TYPE.LEFT });
+        if (m_IsAttackAnimation == true) return;
+        if (m_MoveData.m_MoveType == MOVE_TYPE.LEFT) return;
+
+        m_MoveData.m_MoveType = MOVE_TYPE.LEFT;
+        m_PlayerAnimator.SetInteger("ActionControll", 1);
+
+        ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
     }
 
     public void SendPlayerRightMove()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_RoomIndex = 0, m_PlayerIndex = 0, m_MoveType = MOVE_TYPE.RIGHT });
+        if (m_IsAttackAnimation == true) return;
+        if (m_MoveData.m_MoveType == MOVE_TYPE.RIGHT) return;
+
+        m_MoveData.m_MoveType = MOVE_TYPE.RIGHT;
+        m_PlayerAnimator.SetInteger("ActionControll", 1);
+
+        ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
     }
 
     public void SendPlayerUpMove()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_RoomIndex = 0, m_PlayerIndex = 0, m_MoveType = MOVE_TYPE.UP });
+        if (m_IsAttackAnimation == true) return;
+        if (m_MoveData.m_MoveType == MOVE_TYPE.UP) return;
+
+        m_MoveData.m_MoveType = MOVE_TYPE.UP;
+        m_PlayerAnimator.SetInteger("ActionControll", 1);
+
+        ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
     }
 
     public void SendPlayerDownMove()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_RoomIndex = 0, m_PlayerIndex = 0, m_MoveType = MOVE_TYPE.DOWN });
+        if (m_IsAttackAnimation == true) return;
+        if (m_MoveData.m_MoveType == MOVE_TYPE.DOWN) return;
+
+        m_MoveData.m_MoveType = MOVE_TYPE.DOWN;
+        m_PlayerAnimator.SetInteger("ActionControll", 1);
+
+        ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
     }
 
     public void SendPlayerIdle()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(new CSMoveData() { m_RoomIndex = 0, m_PlayerIndex = 0, m_MoveType = MOVE_TYPE.NONE });
+        if (m_MoveData.m_MoveType == MOVE_TYPE.NONE) return;
+
+        m_MoveData.m_MoveType = MOVE_TYPE.NONE;
+        m_PlayerAnimator.SetInteger("ActionControll", 0);
+
+        ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
     }
 
     public void SendPlayerAttack()
     {
-        ClientNetworkManager.Instance.SendManager.SendCSAttackData();
+        if (m_IsAttackAnimation == true) return;
+
+        m_IsAttackAnimation = true;
+        m_PlayerAnimator.SetInteger("ActionControll", 2);
+        ClientNetworkManager.Instance.SendManager.SendCSAttackData(m_AttackData);
     }
 }

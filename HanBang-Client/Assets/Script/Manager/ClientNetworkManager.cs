@@ -55,8 +55,9 @@ public class ClientNetworkManager : MonoBehaviour
 
         m_PacketSendManager.SendHandler += m_Session.SendMsg;
 
-        m_PacketReceiveManager.SCMatchBattleRoom += OnSCMatchBattleRoom;
-        m_PacketReceiveManager.SCSyncBattleData += OnSCSyncBattleData;
+        m_PacketReceiveManager.SCMatchBattleRoomData   += OnSCMatchBattleRoomData;
+        m_PacketReceiveManager.SCBattleMemberSpawnData += OnSCBattleMemberSpawnData;
+        m_PacketReceiveManager.SCSyncBattleData        += OnSCSyncBattleData;
     }
 	
 	// Update is called once per frame
@@ -75,7 +76,7 @@ public class ClientNetworkManager : MonoBehaviour
         }
 	}
 
-    void ApplicationQuit()
+    void OnApplicationQuit()
     {
         m_Session.Close();
     }
@@ -108,9 +109,14 @@ public class ClientNetworkManager : MonoBehaviour
         }
     }
 
-    private void OnSCMatchBattleRoom(SCMatchBattleRoom data)
+    private void OnSCMatchBattleRoomData(SCMatchBattleRoomData data)
     {
-        GameManager.Instance.InitializePlayer(data.m_PlayerIndex);
+        GameManager.Instance.InitializeBattleRoom(data.m_RoomIndex);
+    }
+
+    private void OnSCBattleMemberSpawnData(SCBattleMemberSpawnData data)
+    {
+        GameManager.Instance.InitializePlayer
     }
 
     private void OnSCSyncBattleData(SCSyncBattleData data)

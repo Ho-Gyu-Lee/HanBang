@@ -16,6 +16,9 @@ namespace GameServer.Battle
         private BattleMember m_Member1 = null;
         private BattleMember m_Member2 = null;
 
+        private bool IsMember1Attack = false;
+        private bool IsMember2Attack = false;
+
         public void SetBattleMember(int playerIndex, BattleMember member)
         {
             switch(playerIndex)
@@ -29,14 +32,30 @@ namespace GameServer.Battle
             }
         }
 
+        public void Attack(int playerIndex)
+        {
+            switch (playerIndex)
+            {
+                case 0:
+                    IsMember1Attack = true;
+                    break;
+                case 1:
+                    IsMember2Attack = true;
+                    break;
+            }
+        }
+
         public void Update()
         {
             // 매 프레임 마다 위치를 이동 시킨다.
-            UpdatePlayerMovePos(m_Member1);
-            UpdatePlayerMovePos(m_Member2);
+            if(IsMember1Attack == false)
+                UpdatePlayerMovePos(m_Member1);
+
+            if (IsMember2Attack == false)
+                UpdatePlayerMovePos(m_Member2);
         }
 
-        public void UpdatePlayerMovePos(BattleMember member)
+        private void UpdatePlayerMovePos(BattleMember member)
         {
             if(member != null)
             {

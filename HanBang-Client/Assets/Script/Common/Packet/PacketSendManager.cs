@@ -35,10 +35,15 @@ namespace GameServer.Common.Packet
             SendHandler((int)PACKET_TYPE.CS_MOVE, MemStream.GetBuffer(), (int)MemStream.Length);
         }
 
-        public void SendCSAttackData()
+        public void SendCSAttackData(CSAttackData data)
         {
-            byte[] buffer = new byte[0];
-            SendHandler((int)PACKET_TYPE.CS_ATTACK, buffer, buffer.Length);
+            MemStream.SetLength(0);
+            MemStream.Position = 0;
+
+            MessagePackSerializer<CSAttackData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSAttackData>();
+            serializer.Pack(MemStream, data);
+
+            SendHandler((int)PACKET_TYPE.CS_ATTACK, MemStream.GetBuffer(), (int)MemStream.Length);
         }
 
         public void SendSCSyncBattleData(SCSyncBattleData data)
@@ -58,15 +63,26 @@ namespace GameServer.Common.Packet
             SendHandler((int)PACKET_TYPE.CS_MATCH_BATTLE_ROOM, buffer, buffer.Length);
         }
 
-        public void SendSCMatchBattleRoom(SCMatchBattleRoom data)
+        public void SendSCMatchBattleRoomData(SCMatchBattleRoomData data)
         {
             MemStream.SetLength(0);
             MemStream.Position = 0;
 
-            MessagePackSerializer<SCMatchBattleRoom> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCMatchBattleRoom>();
+            MessagePackSerializer<SCMatchBattleRoomData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCMatchBattleRoomData>();
             serializer.Pack(MemStream, data);
 
             SendHandler((int)PACKET_TYPE.SC_MATCH_BATTLE_ROOM, MemStream.GetBuffer(), (int)MemStream.Length);
+        }
+
+        public void SendSCBattleMemberSpawnData(SCBattleMemberSpawnData data)
+        {
+            MemStream.SetLength(0);
+            MemStream.Position = 0;
+
+            MessagePackSerializer<SCBattleMemberSpawnData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCBattleMemberSpawnData>();
+            serializer.Pack(MemStream, data);
+
+            SendHandler((int)PACKET_TYPE.SC_BATTLE_MEMBER_SPAWN, MemStream.GetBuffer(), (int)MemStream.Length);
         }
     }
 }

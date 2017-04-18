@@ -1,4 +1,5 @@
-﻿using GameServer.Common.Util;
+﻿using GameServer.Common.Packet;
+using GameServer.Common.Util;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -30,13 +31,13 @@ namespace GameServer.Room
             return battleRoom;
         }
 
-        public void MatchBattleRoom(GameSession gameUserSession, ref int roomIndex, ref int playerIndex)
+        public void MatchBattleRoom(GameSession gameUserSession, ref int roomIndex)
         {
             BattleRoom battleRoom = m_BattleRooms.Where(rooms => rooms.Value.MemberCount == 1).FirstOrDefault().Value;
 
             if(battleRoom != null)
             {
-                battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex);
+                battleRoom.JoinBattleRoom(gameUserSession, out roomIndex);
                 return;
             }
 
@@ -59,7 +60,7 @@ namespace GameServer.Room
                 return;
             }
 
-            battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex);
+            battleRoom.JoinBattleRoom(gameUserSession, out roomIndex);
         }
 
         public void CloseBattle(int roomIndex)

@@ -43,17 +43,9 @@ public class GameManager : MonoBehaviour
         return null;
     }
 
-    public Vector3 GetStartPos(int playerIndex)
+    void Awake()
     {
-        switch (playerIndex)
-        {
-            case 1:
-                return new Vector3(-6.0F, 0.0F, 0.0F);
-            case 2:
-                return new Vector3(6.0F, 0.0F, 0.0F);
-        }
-
-        return new Vector3(0.0F, 0.0F, 0.0F);
+        Screen.SetResolution(1280, 720, false);
     }
 
     // Use this for initialization
@@ -78,25 +70,14 @@ public class GameManager : MonoBehaviour
         RoomIndex = roomIndex;
     }
 
-    public void InitializePlayer(int playerIndex)
+    public void OnPlayerSpawn(int playerIndex, PosData pos)
     {
-        switch(playerIndex)
-        {
-            case 0:
-                {
-                    m_Player1 = Instantiate(m_Characters["Rogue_06"], GetStartPos(playerIndex), Quaternion.identity);
-                    m_Player1.transform.localScale = new Vector3(0.23F, 0.23F, 1);
-                    m_Player1.AddComponent<Player>();
-                }
-                break;
-            case 1:
-                {
-                    m_Player2 = Instantiate(m_Characters["Rogue_01"], GetStartPos(playerIndex), Quaternion.identity);
-                    m_Player2.transform.localScale = new Vector3(0.23F, 0.23F, 1);
-                    m_Player2.AddComponent<Player>();
-                }
-                break;
-        };
+        m_Player1 = Instantiate(m_Characters["Rogue_06"], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
+        m_Player1.transform.localScale = new Vector3(0.23F, 0.23F, 1);
+        m_Player1.AddComponent<Player>();
+
+        Player script = m_Player1.GetComponent<Player>();
+        script.InitializeMoveData(RoomIndex, playerIndex);
     }
 
     public void OnPlayerMove(int playerIndex, MOVE_TYPE moveType, PosData data)

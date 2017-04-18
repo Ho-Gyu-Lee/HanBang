@@ -10,17 +10,20 @@ namespace GameServer.Common.Packet
         public delegate void OnCSMoveDataDelegate(CSMoveData data);
         public OnCSMoveDataDelegate CSMoveData;
 
-        public delegate void OnCSAttacDataDelegate();
+        public delegate void OnCSAttacDataDelegate(CSAttackData data);
         public OnCSAttacDataDelegate CSAttackData;
 
-        public delegate void OnSCSyncBattleData(SCSyncBattleData data);
-        public OnSCSyncBattleData SCSyncBattleData;
+        public delegate void OnSCSyncBattleDataDelegate(SCSyncBattleData data);
+        public OnSCSyncBattleDataDelegate SCSyncBattleData;
 
         public delegate void OnCSMatchBattleRoomDelegate();
         public OnCSMatchBattleRoomDelegate CSMatchBattleRoom;
 
-        public delegate void OnSCMatchBattleRoomDelegate(SCMatchBattleRoom data);
-        public OnSCMatchBattleRoomDelegate SCMatchBattleRoom;
+        public delegate void OnSCMatchBattleRoomDataDelegate(SCMatchBattleRoomData data);
+        public OnSCMatchBattleRoomDataDelegate SCMatchBattleRoomData;
+
+        public delegate void OnSCBattleMemberSpawnDataDelegate(SCBattleMemberSpawnData data);
+        public OnSCBattleMemberSpawnDataDelegate SCBattleMemberSpawnData;
 
         public void OnReceiveMessage(int type, byte[] body)
         {
@@ -39,7 +42,8 @@ namespace GameServer.Common.Packet
 
                 case PACKET_TYPE.CS_ATTACK:
                     {
-                        CSAttackData();
+                        MessagePackSerializer<CSAttackData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSAttackData>();
+                        CSAttackData(derializer.Unpack(m_MemStream));
                     }
                     break;
 
@@ -58,8 +62,15 @@ namespace GameServer.Common.Packet
 
                 case PACKET_TYPE.SC_MATCH_BATTLE_ROOM:
                     {
-                        MessagePackSerializer<SCMatchBattleRoom> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCMatchBattleRoom>();
-                        SCMatchBattleRoom(derializer.Unpack(m_MemStream));
+                        MessagePackSerializer<SCMatchBattleRoomData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCMatchBattleRoomData>();
+                        SCMatchBattleRoomData(derializer.Unpack(m_MemStream));
+                    }
+                    break;
+
+                case PACKET_TYPE.SC_BATTLE_MEMBER_SPAWN:
+                    {
+                        MessagePackSerializer<SCBattleMemberSpawnData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCBattleMemberSpawnData>();
+                        SCBattleMemberSpawnData(derializer.Unpack(m_MemStream));
                     }
                     break;
             }

@@ -48,7 +48,10 @@ namespace GameServer.Room
                         m_MoveType    = member.PlayerMoveType,
                         m_Pos         = member.m_PlayerPos
                     });
+                }
 
+                foreach (BattleMember member in m_BattleMembers.Values)
+                {
                     member.GameSession.SendManager.SendSCSyncBattleData(syncBattleData);
                 }
 
@@ -56,20 +59,40 @@ namespace GameServer.Room
             }
         }
 
-        public void JoinBattleRoom(GameSession session, out int roomIndex, out int playerIndex)
+        public void JoinBattleRoom(GameSession session, out int roomIndex)
         {
             roomIndex   = m_RoomIndex;
-            playerIndex = MemberCount;
 
-            BattleMember member = new BattleMember(playerIndex, session);
+            int playerIndex = MemberCount;
+
+            BattleMember member = new BattleMember(MemberCount, session);
+
             m_BattleMembers.TryAdd(playerIndex, member);
             m_BattleManager.SetBattleMember(playerIndex, member);
 
-            //if(MemberCount == MAX_MEMBER_COUNT)
-            //{
+            SCBattleMemberSpawnData data = new SCBattleMemberSpawnData();
+            data.m_MyPlayerIndex = member.PlayerIndex;
+            foreach (BattleMember battleMember in m_BattleMembers.Values)
+            {
+                data.m_BattleMemberDatas.Add(battleMember.PlayerIndex, new Common.Packet.BattleMemberData()
+                {
+                    m_PlayerIndex = battleMember.PlayerIndex,
+                    IsDie         = false,
+                    m_MoveType    = battleMember.PlayerMoveType,
+                    m_Pos         = battleMember.m_PlayerPos
+                });
+            }
+
+            foreach (BattleMember battleMember in m_BattleMembers.Values)
+            {
+                member.GameSession.SendManager.SendSCBattleMemberSpawnData(data);
+            }
+
+            if(MemberCount == MAX_MEMBER_COUNT)
+            {
                 if (m_BattleRoomTimer == null)
                     m_BattleRoomTimer = new System.Threading.Timer(Update, new object(), 0, 1000 / 60);
-            //}
+            }
         }
 
         public void CloseBattle()
@@ -88,6 +111,11 @@ namespace GameServer.Room
             {
                 m_BattleMembers[playerIndex].PlayerMoveType = moveType;
             }
+        }
+
+        public void Attack(int playerIndex)
+        {
+            m_BattleManager.Attack(playerIndex);
         }
     }
 }

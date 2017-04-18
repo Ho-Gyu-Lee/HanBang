@@ -12,6 +12,7 @@ namespace GameServer.Common.Packet
         SC_SYNC_BATTLE,
         CS_MATCH_BATTLE_ROOM,
         SC_MATCH_BATTLE_ROOM,
+        SC_BATTLE_MEMBER_SPAWN,
     }
 
     [MessagePackEnum]
@@ -38,6 +39,12 @@ namespace GameServer.Common.Packet
         {
             m_X = data.m_X;
             m_Y = data.m_Y;
+        }
+
+        public PosData(float x, float y)
+        {
+            m_X = x;
+            m_Y = y;
         }
     }
 
@@ -68,6 +75,15 @@ namespace GameServer.Common.Packet
         public MOVE_TYPE m_MoveType = MOVE_TYPE.NONE;
     }
 
+    public class CSAttackData
+    {
+        [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
+        public int m_RoomIndex = -1;
+
+        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
+        public int m_PlayerIndex = -1;
+    }
+
     public class SCSyncBattleData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
@@ -77,12 +93,18 @@ namespace GameServer.Common.Packet
         public Dictionary<int, BattleMemberData> m_BattleMemberDatas = new Dictionary<int, BattleMemberData>();
     }
 
-    public class SCMatchBattleRoom
+    public class SCMatchBattleRoomData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
         public int m_RoomIndex = -1;
+    }
+
+    public class SCBattleMemberSpawnData
+    {
+        [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
+        public int m_MyPlayerIndex = -1;
 
         [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
-        public int m_PlayerIndex = -1;
+        public Dictionary<int, BattleMemberData> m_BattleMemberDatas = new Dictionary<int, BattleMemberData>();
     }
 }

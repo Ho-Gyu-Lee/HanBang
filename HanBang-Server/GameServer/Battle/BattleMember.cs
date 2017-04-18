@@ -5,7 +5,7 @@ namespace GameServer.Battle
 {
     class BattleMember
     {
-        public PosData m_PlayerPos = new PosData();
+        public PosData m_PlayerPos = null;
 
         private object m_MoveTypeLock = new object();
         private MOVE_TYPE m_PlayerMoveType = MOVE_TYPE.NONE;
@@ -37,6 +37,16 @@ namespace GameServer.Battle
         {
             PlayerIndex = playerIndex;
             GameSession = session;
+
+            switch (playerIndex)
+            {
+                case 0:
+                    m_PlayerPos = new PosData(-6.0F, 0.0F);
+                    break;
+                case 1:
+                    m_PlayerPos = new PosData(6.0F, 0.0F);
+                    break;
+            }
         }
     }
 }

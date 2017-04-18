@@ -66,17 +66,24 @@ namespace GameServer
             battleRoom.ChangeMemberMoveType(data.m_PlayerIndex, data.m_MoveType);
         }
 
-        private void OnCSAttackData()
+        private void OnCSAttackData(CSAttackData data)
         {
+            Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(data.m_RoomIndex);
+            if (battleRoom == null)
+            {
+                Console.WriteLine("Not Find Battle Room");
+                return;
+            }
 
+            battleRoom.Attack(data.m_PlayerIndex);
         }
 
         private void OnMatchBattleRoom()
         {
-            SCMatchBattleRoom data = new SCMatchBattleRoom();
-            Room.BattleRoomManager.Instance.MatchBattleRoom(this, ref data.m_RoomIndex, ref data.m_PlayerIndex);
+            SCMatchBattleRoomData data = new SCMatchBattleRoomData();
+            Room.BattleRoomManager.Instance.MatchBattleRoom(this, ref data.m_RoomIndex);
 
-            SendManager.SendSCMatchBattleRoom(data);
+            SendManager.SendSCMatchBattleRoomData(data);
         }
     }
 }
