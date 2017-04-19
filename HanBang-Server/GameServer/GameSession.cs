@@ -17,8 +17,7 @@ namespace GameServer
         {
             m_PacketSendManager.SendHandler += SendMsg;
 
-            m_PacketReceiveManager.CSMoveData         += OnCSMoveData;
-            m_PacketReceiveManager.CSAttackData       += OnCSAttackData;
+            m_PacketReceiveManager.CSBattleMemberActionData       += OnCSActionData;
             m_PacketReceiveManager.CSMatchBattleRoom  += OnMatchBattleRoom;
             m_PacketReceiveManager.CSBattleMemberData += OnBattleMemberData;
         }
@@ -55,7 +54,7 @@ namespace GameServer
             m_PacketReceiveManager.OnReceiveMessage(type, body);
         }
 
-        private void OnCSMoveData(CSMoveData data)
+        private void OnCSActionData(CSBattleMemberActionData data)
         {
             Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(data.m_RoomIndex);
             if(battleRoom == null)
@@ -64,19 +63,7 @@ namespace GameServer
                 return;
             }
 
-            battleRoom.ChangeMemberMoveType(data.m_PlayerIndex, data.m_MoveType);
-        }
-
-        private void OnCSAttackData(CSAttackData data)
-        {
-            Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(data.m_RoomIndex);
-            if (battleRoom == null)
-            {
-                Console.WriteLine("Not Find Battle Room");
-                return;
-            }
-
-            battleRoom.Attack(data.m_PlayerIndex);
+            battleRoom.SetBattleMemberActionData(data.m_PlayerIndex, data.m_ActionType);
         }
 
         private void OnMatchBattleRoom()

@@ -15,7 +15,9 @@ namespace GameServer.Room
 
         private BattleManager m_BattleManager = new BattleManager();
 
-        private int m_Frame = 0;
+        private volatile int m_Frame = 0;
+
+        private int m_GameTimeRemain = 60;
 
         public int m_RoomIndex = -1;
 
@@ -49,6 +51,8 @@ namespace GameServer.Room
 
                 Common.Packet.SCSyncBattleData syncBattleData = new Common.Packet.SCSyncBattleData();
                 syncBattleData.m_Frame = m_Frame;
+                syncBattleData.m_GameTimeRemain = m_GameTimeRemain - (((1000 / 60) * m_Frame) / 1000);
+
                 foreach (BattleMember member in m_BattleMembers.Values)
                 {
                     syncBattleData.m_BattleMemberDatas.Add(member.PlayerIndex, member.BattleMemberData);
@@ -59,7 +63,7 @@ namespace GameServer.Room
                     member.GameSession.SendManager.SendSCSyncBattleData(syncBattleData);
                 }
 
-                m_Frame++;
+                Interlocked.Increment(ref m_Frame);
             }
         }
 
@@ -88,17 +92,12 @@ namespace GameServer.Room
             }
         }
 
-        public void ChangeMemberMoveType(int playerIndex, MOVE_TYPE moveType)
+        public void SetBattleMemberActionData(int playerIndex, ACTION_TYPE actionType)
         {
             if (m_BattleMembers.ContainsKey(playerIndex))
             {
-                m_BattleMembers[playerIndex].MemberMoveType = moveType;
+                m_BattleMembers[playerIndex].MemberActionType = actionType;
             }
-        }
-
-        public void Attack(int playerIndex)
-        {
-            m_BattleManager.Attack(playerIndex);
         }
     }
 }
