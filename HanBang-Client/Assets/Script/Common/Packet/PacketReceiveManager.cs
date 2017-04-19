@@ -7,11 +7,8 @@ namespace GameServer.Common.Packet
     {
         private MemoryStream m_MemStream = new MemoryStream();
 
-        public delegate void OnCSMoveDataDelegate(CSMoveData data);
-        public OnCSMoveDataDelegate CSMoveData;
-
-        public delegate void OnCSAttacDataDelegate(CSAttackData data);
-        public OnCSAttacDataDelegate CSAttackData;
+        public delegate void OnCSBattleMemberActionDataDelegate(CSBattleMemberActionData data);
+        public OnCSBattleMemberActionDataDelegate CSBattleMemberActionData;
 
         public delegate void OnSCSyncBattleDataDelegate(SCSyncBattleData data);
         public OnSCSyncBattleDataDelegate SCSyncBattleData;
@@ -36,17 +33,10 @@ namespace GameServer.Common.Packet
 
             switch ((PACKET_TYPE)type)
             {
-                case PACKET_TYPE.CS_MOVE:
+                case PACKET_TYPE.CS_BATTLE_MEMBER_ACTION_DATA:
                     {
-                        MessagePackSerializer<CSMoveData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSMoveData>();
-                        CSMoveData(derializer.Unpack(m_MemStream));
-                    }
-                    break;
-
-                case PACKET_TYPE.CS_ATTACK:
-                    {
-                        MessagePackSerializer<CSAttackData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSAttackData>();
-                        CSAttackData(derializer.Unpack(m_MemStream));
+                        MessagePackSerializer<CSBattleMemberActionData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSBattleMemberActionData>();
+                        CSBattleMemberActionData(derializer.Unpack(m_MemStream));
                     }
                     break;
 

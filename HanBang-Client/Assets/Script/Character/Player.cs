@@ -11,17 +11,13 @@ public class Player : MonoBehaviour
     private bool m_IsAttackAnimation = false;
     private bool m_IsPlayerRotation  = false;
 
-    private CSMoveData   m_MoveData   = new CSMoveData();
-    private CSAttackData m_AttackData = new CSAttackData();
+    private CSBattleMemberActionData m_BattleMemberActionData = new CSBattleMemberActionData();
 
     public void InitializeMoveData(int roomIndex, int playerIndex)
     {
-        m_MoveData.m_PlayerIndex = playerIndex;
-        m_MoveData.m_RoomIndex   = roomIndex;
-        m_MoveData.m_MoveType    = MOVE_TYPE.NONE;
-
-        m_AttackData.m_RoomIndex   = roomIndex;
-        m_AttackData.m_PlayerIndex = playerIndex;
+        m_BattleMemberActionData.m_PlayerIndex = playerIndex;
+        m_BattleMemberActionData.m_RoomIndex   = roomIndex;
+        m_BattleMemberActionData.m_ActionType  = ACTION_TYPE.NONE;
 
         if(playerIndex == 1)
         {
@@ -34,6 +30,8 @@ public class Player : MonoBehaviour
     void Start ()
     {
         m_Camera = GameObject.Find("Main Camera");
+        m_Camera.transform.position = new Vector3(transform.transform.position.x, transform.transform.position.y + 1, m_Camera.transform.position.z);
+
         m_PlayerAnimator = GetComponent<Animator>();
 
         // UI Setting
@@ -106,84 +104,92 @@ public class Player : MonoBehaviour
         m_Camera.transform.position = new Vector3(cameraPostion.x, cameraPostion.y, cameraPostion.z);
 
         // 공격 모션 완료
-        if (!m_PlayerAnimator.GetCurrentAnimatorStateInfo(0).IsName("Rogue_attack_02"))
+        if (m_IsAttackAnimation)
         {
-            m_IsAttackAnimation = false;
+            if (!m_PlayerAnimator.GetCurrentAnimatorStateInfo(0).IsName("Rogue_attack_02"))
+            {
+                m_IsAttackAnimation = false;
+            }
         }
     }
 
     public void SendPlayerLeftMove()
     {
         if (m_IsAttackAnimation == true) return;
-        if (m_MoveData.m_MoveType == MOVE_TYPE.LEFT) return;
+        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.LEFT) return;
 
-        m_MoveData.m_MoveType = MOVE_TYPE.LEFT;
+        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.LEFT;
 
         if(m_IsPlayerRotation == false)
         {
+            m_IsPlayerRotation = true;
             transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
         }
 
         m_PlayerAnimator.SetInteger("ActionControll", 1);
 
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
+        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
     }
 
     public void SendPlayerRightMove()
     {
         if (m_IsAttackAnimation == true) return;
-        if (m_MoveData.m_MoveType == MOVE_TYPE.RIGHT) return;
+        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.RIGHT) return;
 
-        m_MoveData.m_MoveType = MOVE_TYPE.RIGHT;
+        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.RIGHT;
 
         if(m_IsPlayerRotation)
         {
+            m_IsPlayerRotation = false;
             transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
         }
 
         m_PlayerAnimator.SetInteger("ActionControll", 1);
 
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
+        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
     }
 
     public void SendPlayerUpMove()
     {
         if (m_IsAttackAnimation == true) return;
-        if (m_MoveData.m_MoveType == MOVE_TYPE.UP) return;
+        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.UP) return;
 
-        m_MoveData.m_MoveType = MOVE_TYPE.UP;
+        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.UP;
         m_PlayerAnimator.SetInteger("ActionControll", 1);
 
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
+        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
     }
 
     public void SendPlayerDownMove()
     {
         if (m_IsAttackAnimation == true) return;
-        if (m_MoveData.m_MoveType == MOVE_TYPE.DOWN) return;
+        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.DOWN) return;
 
-        m_MoveData.m_MoveType = MOVE_TYPE.DOWN;
+        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.DOWN;
         m_PlayerAnimator.SetInteger("ActionControll", 1);
 
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
+        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
     }
 
     public void SendPlayerIdle()
     {
-        if (m_MoveData.m_MoveType == MOVE_TYPE.NONE) return;
+        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.NONE) return;
 
-        m_MoveData.m_MoveType = MOVE_TYPE.NONE;
+        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.NONE;
         m_PlayerAnimator.SetInteger("ActionControll", 0);
 
-        ClientNetworkManager.Instance.SendManager.SendCSMoveData(m_MoveData);
+        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
     }
 
     public void SendPlayerAttack()
     {
         if (m_IsAttackAnimation == true) return;
+        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.ATTACK) return;
 
         m_IsAttackAnimation = true;
+        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.ATTACK;
         m_PlayerAnimator.SetInteger("ActionControll", 2);
-        ClientNetworkManager.Instance.SendManager.SendCSAttackData(m_AttackData);
+
+        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
     }
 }

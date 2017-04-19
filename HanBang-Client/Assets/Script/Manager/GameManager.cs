@@ -1,7 +1,7 @@
 ﻿using GameServer.Common.Packet;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -25,14 +25,41 @@ public class GameManager : MonoBehaviour
 
     private Dictionary<string, GameObject> m_Characters = new Dictionary<string, GameObject>();
 
+    private Queue<CSBattleMemberActionData> m_Player1ActionDataQueue = new Queue<CSBattleMemberActionData>();
+
     private GameObject m_Player1 = null;
     private GameObject m_Player2 = null;
+
+    private Text m_BattleTimeText = null;
 
     private List<string> m_CharacterResourcesName = new List<string>();
 
     public int RoomIndex { get; private set; }
 
     public int PlayerIndex { get; private set; }
+
+    private object m_FrameLock = new object();
+
+    private int m_Frame = -1;
+
+    public int Frame
+    {
+        get
+        {
+            lock(m_FrameLock)
+            {
+                return m_Frame;
+            }
+        }
+
+        set
+        {
+            lock (m_FrameLock)
+            {
+                m_Frame = value;
+            }
+        }
+    }
 
     public GameObject Player(int playerIndex)
     {
@@ -56,6 +83,8 @@ public class GameManager : MonoBehaviour
             GameObject gameobject = prefab as GameObject;
             m_Characters.Add(gameobject.name, gameobject);
         }
+
+        m_BattleTimeText = GameObject.Find("Text").GetComponent<Text>();
 
         // 임시 캐릭터 리소스
         m_CharacterResourcesName.Add("Rogue_06");
@@ -101,17 +130,31 @@ public class GameManager : MonoBehaviour
         script.Initialize(playerIndex);
     }
 
-    public void OnPlayerMove(int playerIndex, MOVE_TYPE moveType, PosData data)
+    public void OnSyncBattle(SCSyncBattleData data)
     {
-        GameObject player = Player(playerIndex);
-        if(player != null)
+        Frame = data.m_Frame;
+        m_BattleTimeText.text = data.m_GameTimeRemain.ToString();
+
+        foreach (BattleMemberData member in data.m_BattleMemberDatas.Values)
         {
-            if (PlayerIndex != playerIndex)
+            GameObject player = Player(member.m_PlayerIndex);
+            if (player != null)
             {
-                Enemy script = player.GetComponent<Enemy>();
-                script.OnChageAnimation(moveType);
+                if (PlayerIndex != member.m_PlayerIndex)
+                {
+                    Enemy script = player.GetComponent<Enemy>();
+                    script.OnChageAnimation(member.m_ActionType);
+                }
+                player.transform.position = new Vector3(member.m_Pos.m_X, member.m_Pos.m_Y, 0);
             }
-            player.transform.position = new Vector3(data.m_X, data.m_Y, 0);
         }
+
+        if(m_Player1ActionDataQueue.Count > 0)
+            ClientNetworkManager.Instance.SendManager.SendCSBattleMemberActionData(m_Player1ActionDataQueue.Dequeue());
+    }
+
+    public void SendPlayerActionData(CSBattleMemberActionData data)
+    {
+        m_Player1ActionDataQueue.Enqueue(data);
     }
 }

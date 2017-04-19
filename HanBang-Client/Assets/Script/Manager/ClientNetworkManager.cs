@@ -133,9 +133,6 @@ public class ClientNetworkManager : MonoBehaviour
 
     private void OnSCSyncBattleData(SCSyncBattleData data)
     {
-        foreach(BattleMemberData member in data.m_BattleMemberDatas.Values)
-        {
-            GameManager.Instance.OnPlayerMove(member.m_PlayerIndex, member.m_MoveType, member.m_Pos);
-        }
+        GameManager.Instance.OnSyncBattle(data);
     }
 }

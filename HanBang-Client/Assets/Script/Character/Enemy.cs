@@ -7,10 +7,13 @@ public class Enemy : MonoBehaviour
 {
     public Animator m_EnemyAnimator = null;
 
+    private bool m_IsPlayerRotation = false;
+
     public void Initialize(int playerIndex)
     {
         if (playerIndex == 1)
         {
+            m_IsPlayerRotation = true;
             transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
         }
     }
@@ -27,28 +30,38 @@ public class Enemy : MonoBehaviour
 		
 	}
 
-    public void OnChageAnimation(MOVE_TYPE moveType)
+    public void OnChageAnimation(ACTION_TYPE actionType)
     {
-        switch(moveType)
+        switch(actionType)
         {
-            case MOVE_TYPE.LEFT:
+            case ACTION_TYPE.LEFT:
                 {
-                    transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+                    if (m_IsPlayerRotation == false)
+                    {
+                        m_IsPlayerRotation = true;
+                        transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+                    }
+
                     m_EnemyAnimator.SetInteger("ActionControll", 1);
                 }
                 break;
-            case MOVE_TYPE.RIGHT:
+            case ACTION_TYPE.RIGHT:
                 {
-                    transform.transform.Rotate(new Vector3(0.0F, 0.0F, 0.0F));
+                    if (m_IsPlayerRotation)
+                    {
+                        m_IsPlayerRotation = false;
+                        transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+                    }
+
                     m_EnemyAnimator.SetInteger("ActionControll", 1);
                 }
                 break;
-            case MOVE_TYPE.UP:
+            case ACTION_TYPE.UP:
                 {
                     m_EnemyAnimator.SetInteger("ActionControll", 1);
                 }
                 break;
-            case MOVE_TYPE.DOWN:
+            case ACTION_TYPE.DOWN:
                 {
                     m_EnemyAnimator.SetInteger("ActionControll", 1);
                 }

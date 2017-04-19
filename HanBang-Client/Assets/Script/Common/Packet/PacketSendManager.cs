@@ -24,26 +24,15 @@ namespace GameServer.Common.Packet
         public delegate void SendDelegate(int packetType, byte[] packetContent, int length);
         public SendDelegate SendHandler;
 
-        public void SendCSMoveData(CSMoveData data)
+        public void SendCSBattleMemberActionData(CSBattleMemberActionData data)
         {
             MemStream.SetLength(0);
             MemStream.Position = 0;
 
-            MessagePackSerializer<CSMoveData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSMoveData>();
+            MessagePackSerializer<CSBattleMemberActionData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSBattleMemberActionData>();
             serializer.Pack(MemStream, data);
 
-            SendHandler((int)PACKET_TYPE.CS_MOVE, MemStream.GetBuffer(), (int)MemStream.Length);
-        }
-
-        public void SendCSAttackData(CSAttackData data)
-        {
-            MemStream.SetLength(0);
-            MemStream.Position = 0;
-
-            MessagePackSerializer<CSAttackData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSAttackData>();
-            serializer.Pack(MemStream, data);
-
-            SendHandler((int)PACKET_TYPE.CS_ATTACK, MemStream.GetBuffer(), (int)MemStream.Length);
+            SendHandler((int)PACKET_TYPE.CS_BATTLE_MEMBER_ACTION_DATA, MemStream.GetBuffer(), (int)MemStream.Length);
         }
 
         public void SendSCSyncBattleData(SCSyncBattleData data)
