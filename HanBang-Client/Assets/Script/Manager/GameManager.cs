@@ -133,7 +133,7 @@ public class GameManager : MonoBehaviour
     public void OnSyncBattle(SCSyncBattleData data)
     {
         Frame = data.m_Frame;
-        m_BattleTimeText.text = data.m_GameTimeRemain.ToString();
+        m_BattleTimeText.text = "남은 시간 : " + data.m_GameTimeRemain.ToString();
 
         foreach (BattleMemberData member in data.m_BattleMemberDatas.Values)
         {
@@ -143,6 +143,11 @@ public class GameManager : MonoBehaviour
                 if (PlayerIndex != member.m_PlayerIndex)
                 {
                     Enemy script = player.GetComponent<Enemy>();
+                    script.OnChageAnimation(member.m_ActionType);
+                }
+                else
+                {
+                    Player script = player.GetComponent<Player>();
                     script.OnChageAnimation(member.m_ActionType);
                 }
                 player.transform.position = new Vector3(member.m_Pos.m_X, member.m_Pos.m_Y, 0);

@@ -12,7 +12,7 @@ namespace GameServer.Common.Packet
         {
             get
             {
-                if(m_MemStream == null)
+                if (m_MemStream == null)
                 {
                     m_MemStream = new MemoryStream();
                 }

@@ -66,6 +66,16 @@ public class Enemy : MonoBehaviour
                     m_EnemyAnimator.SetInteger("ActionControll", 1);
                 }
                 break;
+            case ACTION_TYPE.ATTACK:
+                {
+                    m_EnemyAnimator.SetInteger("ActionControll", 2);
+                }
+                break;
+            case ACTION_TYPE.DIE:
+                {
+                    m_EnemyAnimator.SetInteger("ActionControll", 3);
+                }
+                break;
             default:
                 {
                     m_EnemyAnimator.SetInteger("ActionControll", 0);
