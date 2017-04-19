@@ -27,6 +27,14 @@ namespace GameServer.Common.Packet
         DIE,
     }
 
+    [MessagePackEnum]
+    public enum PLAYER_INDEX
+    {
+        NONE     = -1,
+        PLAYER_1 = 0,
+        PLAYER_2 = 1,
+    }
+
     public class PosData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
@@ -60,9 +68,6 @@ namespace GameServer.Common.Packet
 
         [MessagePackMember(2, NilImplication = NilImplication.MemberDefault)]
         public PosData m_Pos;
-
-        [MessagePackMember(3, NilImplication = NilImplication.MemberDefault)]
-        public bool IsDie = false;
     }
 
     public class CSBattleMemberActionData

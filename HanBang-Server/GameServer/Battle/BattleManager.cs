@@ -14,8 +14,8 @@ namespace GameServer.Battle
 
         private const float PLAYER_SPEED = 0.25F;
 
-        private const float PLAYER_COLLISION_BOX_X = 1.5F;
-        private const float PLAYER_COLLISION_BOX_Y = 2.0F;
+        private const float PLAYER_COLLISION_BOX_X = 1.3F;
+        private const float PLAYER_COLLISION_BOX_Y = 1.3F;
 
         private BattleMember m_Member1 = null;
         private BattleMember m_Member2 = null;
@@ -45,39 +45,42 @@ namespace GameServer.Battle
             UpdatePlayersCollision(m_Member1, m_Member2);
         }
 
-        public bool UpdateGameResult()
+        public PLAYER_INDEX UpdateGameResult()
         {
             if (m_Member1 != null && m_Member2 != null)
             {
-                if(m_Member1.MemberActionType == ACTION_TYPE.ATTACK)
+                if (m_Member1.MemberActionType == ACTION_TYPE.ATTACK)
                 {
-                    return ExaminePlayerDamage(m_Member1.MemberLook, m_Member1.MemberPos, m_Member2.MemberPos);
+                    if (ExaminePlayerDamage(m_Member1.MemberLook, m_Member1.MemberPos, m_Member2.MemberPos))
+                        return PLAYER_INDEX.PLAYER_1;
                 }
-                else if(m_Member2.MemberActionType == ACTION_TYPE.ATTACK)
+                else if (m_Member2.MemberActionType == ACTION_TYPE.ATTACK)
                 {
-                    return ExaminePlayerDamage(m_Member2.MemberLook, m_Member2.MemberPos, m_Member1.MemberPos);
+                    if (ExaminePlayerDamage(m_Member2.MemberLook, m_Member2.MemberPos, m_Member1.MemberPos))
+                        return PLAYER_INDEX.PLAYER_2;
                 }
-                else if(m_Member1.MemberActionType == ACTION_TYPE.ATTACK && m_Member2.MemberActionType == ACTION_TYPE.ATTACK)
+                else if (m_Member1.MemberActionType == ACTION_TYPE.ATTACK && m_Member2.MemberActionType == ACTION_TYPE.ATTACK)
                 {
                     bool member1Damage = ExaminePlayerDamage(m_Member1.MemberLook, m_Member1.MemberPos, m_Member2.MemberPos);
                     bool member2Damage = ExaminePlayerDamage(m_Member2.MemberLook, m_Member2.MemberPos, m_Member1.MemberPos);
 
-                    if(member1Damage && member2Damage)
+                    if (member1Damage && member2Damage)
                     {
                         // 둘다 데미지를 받았다면
+                        int result = m_BattleRandom.Next(0, 1);
+                        if (result == 0)
+                            return PLAYER_INDEX.PLAYER_1;
+                        else
+                            return PLAYER_INDEX.PLAYER_2;
                     }
-                    else if(member1Damage)
-                    {
-                        // 1 번 유저가 데미지 입음
-                    }
-                    else if(member2Damage)
-                    {
-                        // 2번 유저가 데미지 입음
-                    }
+                    else if (member1Damage)
+                        return PLAYER_INDEX.PLAYER_2;
+                    else if (member2Damage)
+                        return PLAYER_INDEX.PLAYER_1;
                 }
             }
 
-            return false;
+            return PLAYER_INDEX.NONE;
         }
 
         private bool ExaminePlayerDamage(bool look, PosData attack, PosData hit)
@@ -87,8 +90,8 @@ namespace GameServer.Battle
             {
                 // 왼쪽에 유저가 존재 하는가?
                 collisionBoxX = attack.m_X - (PLAYER_COLLISION_BOX_X * 2);
-                if (collisionBoxX - PLAYER_COLLISION_BOX_X < hit.m_X &&
-                    collisionBoxX + PLAYER_COLLISION_BOX_X > hit.m_X)
+                if (collisionBoxX - PLAYER_COLLISION_BOX_X <= hit.m_X &&
+                    collisionBoxX + PLAYER_COLLISION_BOX_X >= hit.m_X)
                 {
                     return true;
                 }
@@ -97,8 +100,8 @@ namespace GameServer.Battle
             {
                 // 오른쪽에 유저가 존재 하는가?
                 collisionBoxX = attack.m_X + (PLAYER_COLLISION_BOX_X * 2);
-                if (collisionBoxX - PLAYER_COLLISION_BOX_X < hit.m_X &&
-                    collisionBoxX + PLAYER_COLLISION_BOX_X > hit.m_X)
+                if (collisionBoxX - PLAYER_COLLISION_BOX_X <= hit.m_X &&
+                    collisionBoxX + PLAYER_COLLISION_BOX_X >= hit.m_X)
                 {
                     return true;
                 }
@@ -109,7 +112,7 @@ namespace GameServer.Battle
 
         private void UpdatePlayerMapMove(BattleMember member)
         {
-            if(member != null)
+            if (member != null)
             {
                 // 현재 위치를 얻어 온다.
                 PosData pos = new PosData(member.MemberPos);
@@ -118,8 +121,8 @@ namespace GameServer.Battle
                 PlayerNextPosData(member.MemberActionType, ref member.MemberLook, ref pos);
 
                 // 맵 충돌 체크를 한다.
-                if (pos.m_X > MIN_PLAYER_POSX && pos.m_X < MAX_PLAYER_POSX &&
-                    pos.m_Y < MAX_PLAYER_POSY && pos.m_Y > MIN_PLAYER_POSY)
+                if (pos.m_X >= MIN_PLAYER_POSX && pos.m_X <= MAX_PLAYER_POSX &&
+                    pos.m_Y <= MAX_PLAYER_POSY && pos.m_Y >= MIN_PLAYER_POSY)
                 {
                     member.MemberPos.m_X = pos.m_X;
                     member.MemberPos.m_Y = pos.m_Y;
@@ -129,18 +132,18 @@ namespace GameServer.Battle
 
         private void UpdatePlayersCollision(BattleMember member1, BattleMember member2)
         {
-            if(member1 != null && member2 != null)
+            if (member1 != null && member2 != null)
             {
-                if(member1.MemberPos.m_X - PLAYER_COLLISION_BOX_X < member2.MemberPos.m_X && 
-                   member1.MemberPos.m_X + PLAYER_COLLISION_BOX_X > member2.MemberPos.m_X &&
-                   member1.MemberPos.m_Y - PLAYER_COLLISION_BOX_Y < member2.MemberPos.m_Y &&
-                   member1.MemberPos.m_Y + PLAYER_COLLISION_BOX_Y > member2.MemberPos.m_Y)
+                if (member1.MemberPos.m_X - PLAYER_COLLISION_BOX_X <= member2.MemberPos.m_X && 
+                    member1.MemberPos.m_X + PLAYER_COLLISION_BOX_X >= member2.MemberPos.m_X &&
+                    member1.MemberPos.m_Y - PLAYER_COLLISION_BOX_Y <= member2.MemberPos.m_Y &&
+                    member1.MemberPos.m_Y + PLAYER_COLLISION_BOX_Y >= member2.MemberPos.m_Y)
                 {
-                    if(member1.MemberActionType == ACTION_TYPE.NONE)
+                    if (member1.MemberActionType == ACTION_TYPE.NONE)
                     {
                         PlayerPrevPosData(member2.MemberActionType, ref member2.MemberPos.m_X, ref member2.MemberPos.m_Y);
                     }
-                    else if(member2.MemberActionType == ACTION_TYPE.NONE)
+                    else if (member2.MemberActionType == ACTION_TYPE.NONE)
                     {
                         PlayerPrevPosData(member1.MemberActionType, ref member1.MemberPos.m_X, ref member1.MemberPos.m_Y);
                     }

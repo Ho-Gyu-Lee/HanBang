@@ -48,15 +48,26 @@ namespace GameServer.Battle
 
             m_BattleMemberData.m_PlayerIndex = playerIndex;
 
-            switch (playerIndex)
+            Initialize();
+        }
+
+        public void Initialize()
+        {
+            switch (m_BattleMemberData.m_PlayerIndex)
             {
                 case 0:
-                    MemberLook = false;
-                    m_BattleMemberData.m_Pos = new PosData(-6.0F, 0.0F);
+                    {
+                        MemberLook = false;
+                        m_BattleMemberData.m_Pos = new PosData(-6.0F, 0.0F);
+                        MemberActionType = ACTION_TYPE.NONE;
+                    }
                     break;
                 case 1:
-                    MemberLook = true;
-                    m_BattleMemberData.m_Pos = new PosData(6.0F, 0.0F);
+                    {
+                        MemberLook = true;
+                        m_BattleMemberData.m_Pos = new PosData(6.0F, 0.0F);
+                        MemberActionType = ACTION_TYPE.NONE;
+                    }
                     break;
             }
         }

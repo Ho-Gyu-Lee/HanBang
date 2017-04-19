@@ -24,7 +24,7 @@ namespace GameServer.Room
         public BattleRoom GetBattleRoom(int roomIndex)
         {
             BattleRoom battleRoom = null;
-            if(m_BattleRooms.ContainsKey(roomIndex))
+            if (m_BattleRooms.ContainsKey(roomIndex))
             {
                 battleRoom = m_BattleRooms[roomIndex];
             }
@@ -35,19 +35,19 @@ namespace GameServer.Room
         {
             BattleRoom battleRoom = m_BattleRooms.Where(rooms => rooms.Value.MemberCount == 1).FirstOrDefault().Value;
 
-            if(battleRoom != null)
+            if (battleRoom != null)
             {
                 battleRoom.JoinBattleRoom(gameUserSession, out roomIndex);
                 return;
             }
 
-            if(!m_BattleRoomIndexs.TryDequeue(out roomIndex))
+            if (!m_BattleRoomIndexs.TryDequeue(out roomIndex))
             {
                 Console.WriteLine("Failed Battle Room Index");
                 return;
             }
 
-            if(roomIndex < 0)
+            if (roomIndex < 0)
             {
                 Console.WriteLine("Failed Battle Room Index");
                 return;
@@ -66,13 +66,13 @@ namespace GameServer.Room
         public void CloseBattle(int roomIndex)
         {
             BattleRoom battleRoom = null;
-            if(!m_BattleRooms.TryRemove(roomIndex, out battleRoom))
+            if (!m_BattleRooms.TryRemove(roomIndex, out battleRoom))
             {
                 Console.WriteLine("Not Remove Battle Room");
                 return;
             }
 
-            if(battleRoom == null)
+            if (battleRoom == null)
             {
                 Console.WriteLine("Null of Battle Room");
                 return;

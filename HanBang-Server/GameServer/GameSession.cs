@@ -57,7 +57,7 @@ namespace GameServer
         private void OnCSActionData(CSBattleMemberActionData data)
         {
             Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(data.m_RoomIndex);
-            if(battleRoom == null)
+            if (battleRoom == null)
             {
                 Console.WriteLine("Not Find Battle Room");
                 return;
