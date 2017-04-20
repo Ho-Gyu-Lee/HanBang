@@ -31,13 +31,13 @@ namespace GameServer.Room
             return battleRoom;
         }
 
-        public void MatchBattleRoom(GameSession gameUserSession, ref int roomIndex)
+        public void MatchBattleRoom(GameSession gameUserSession, ref int roomIndex, ref int playerIndex, ref BattleMapData battleMapData)
         {
             BattleRoom battleRoom = m_BattleRooms.Where(rooms => rooms.Value.MemberCount == 1).FirstOrDefault().Value;
 
             if (battleRoom != null)
             {
-                battleRoom.JoinBattleRoom(gameUserSession, out roomIndex);
+                battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex, out battleMapData);
                 return;
             }
 
@@ -60,25 +60,23 @@ namespace GameServer.Room
                 return;
             }
 
-            battleRoom.JoinBattleRoom(gameUserSession, out roomIndex);
+            battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex, out battleMapData);
         }
 
-        public void CloseBattle(int roomIndex)
+        public void LeaveBattleRoom(int roomIndex, int playerIndex)
         {
-            BattleRoom battleRoom = null;
-            if (!m_BattleRooms.TryRemove(roomIndex, out battleRoom))
+            if(m_BattleRooms.ContainsKey(roomIndex))
             {
-                Console.WriteLine("Not Remove Battle Room");
-                return;
+                if(m_BattleRooms[roomIndex].LeaveBattleRoom(playerIndex))
+                {
+                    BattleRoom battleRoom = null;
+                    if (!m_BattleRooms.TryRemove(roomIndex, out battleRoom))
+                    {
+                        Console.WriteLine("Not Remove Battle Room");
+                        return;
+                    }
+                }
             }
-
-            if (battleRoom == null)
-            {
-                Console.WriteLine("Null of Battle Room");
-                return;
-            }
-
-            battleRoom.CloseBattle();
         }
     }
 }

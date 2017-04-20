@@ -11,10 +11,24 @@ public class Enemy : MonoBehaviour
 
     public void Initialize(int playerIndex)
     {
+        if (m_EnemyAnimator != null)
+            m_EnemyAnimator.SetInteger("ActionControll", 0);
+
         if (playerIndex == 1)
         {
-            m_IsPlayerRotation = true;
-            transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+            if(m_IsPlayerRotation == false)
+            {
+                m_IsPlayerRotation = true;
+                transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+            }
+        }
+        else
+        {
+            if (m_IsPlayerRotation)
+            {
+                m_IsPlayerRotation = false;
+                transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+            }
         }
     }
 
@@ -73,6 +87,10 @@ public class Enemy : MonoBehaviour
                 break;
             case ACTION_TYPE.DIE:
                 {
+                    Vector3 playerInfo = transform.transform.position;
+                    GameObject instance = Instantiate(Resources.Load("Cube Space/Prefabs/Ef_Electro_02", typeof(GameObject)) as GameObject, new Vector3(playerInfo.x, playerInfo.y + 1.0F, 0.0F), Quaternion.identity);
+                    instance.transform.localScale = new Vector3(1.5F, 1.5F, 1);
+
                     m_EnemyAnimator.SetInteger("ActionControll", 3);
                 }
                 break;

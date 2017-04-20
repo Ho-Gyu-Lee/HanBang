@@ -58,14 +58,14 @@ namespace GameServer.Battle
                 case 0:
                     {
                         MemberLook = false;
-                        m_BattleMemberData.m_Pos = new PosData(-6.0F, 0.0F);
+                        m_BattleMemberData.m_Pos = new PosData(-3.0F, 0.0F);
                         MemberActionType = ACTION_TYPE.NONE;
                     }
                     break;
                 case 1:
                     {
                         MemberLook = true;
-                        m_BattleMemberData.m_Pos = new PosData(6.0F, 0.0F);
+                        m_BattleMemberData.m_Pos = new PosData(3.0F, 0.0F);
                         MemberActionType = ACTION_TYPE.NONE;
                     }
                     break;

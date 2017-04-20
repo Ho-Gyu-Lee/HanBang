@@ -6,12 +6,6 @@ namespace GameServer.Battle
 {
     class BattleManager
     {
-        private const float MIN_PLAYER_POSX = -19.0F;
-        private const float MIN_PLAYER_POSY = -18.0F;
-
-        private const float MAX_PLAYER_POSX = 17.8F;
-        private const float MAX_PLAYER_POSY = 17.9F;
-
         private const float PLAYER_SPEED = 0.25F;
 
         private const float PLAYER_COLLISION_BOX_X = 1.3F;
@@ -19,6 +13,8 @@ namespace GameServer.Battle
 
         private BattleMember m_Member1 = null;
         private BattleMember m_Member2 = null;
+
+        public BattleMapData BattleMapData { get; private set; }
 
         private Random m_BattleRandom = new Random(Guid.NewGuid().GetHashCode());
 
@@ -33,6 +29,18 @@ namespace GameServer.Battle
                     m_Member2 = member;
                     break;
             }
+        }
+
+        public BattleManager()
+        {
+            // 임시 맵 정보를 셋팅한다. 추후 파일을 읽어서 셋팅 할 거임
+            BattleMapData = new BattleMapData();
+
+            BattleMapData.m_MinMapSizeX = -12.80F;
+            BattleMapData.m_MaxMapSizeX = 11.52F;
+
+            BattleMapData.m_MinMapSizeY = -11.52F;
+            BattleMapData.m_MaxMapSizeY = 12.8F;
         }
 
         public void Update()
@@ -85,26 +93,21 @@ namespace GameServer.Battle
 
         private bool ExaminePlayerDamage(bool look, PosData attack, PosData hit)
         {
-            float collisionBoxX = 0.0F;
+            bool isHitPlayerLook = false;
             if (look)
             {
-                // 왼쪽에 유저가 존재 하는가?
-                collisionBoxX = attack.m_X - (PLAYER_COLLISION_BOX_X * 2);
-                if (collisionBoxX - PLAYER_COLLISION_BOX_X <= hit.m_X &&
-                    collisionBoxX + PLAYER_COLLISION_BOX_X >= hit.m_X)
-                {
-                    return true;
-                }
+                if (attack.m_X > hit.m_X) isHitPlayerLook = true;
             }
             else
             {
-                // 오른쪽에 유저가 존재 하는가?
-                collisionBoxX = attack.m_X + (PLAYER_COLLISION_BOX_X * 2);
-                if (collisionBoxX - PLAYER_COLLISION_BOX_X <= hit.m_X &&
-                    collisionBoxX + PLAYER_COLLISION_BOX_X >= hit.m_X)
-                {
+                if (attack.m_X < hit.m_X) isHitPlayerLook = true;
+            }
+
+            if (isHitPlayerLook)
+            {
+                double distance = Math.Sqrt(Math.Pow(attack.m_X - hit.m_X, 2) + Math.Pow(attack.m_Y - hit.m_Y, 2));
+                if (distance < 1.9F)
                     return true;
-                }
             }
 
             return false;
@@ -120,9 +123,9 @@ namespace GameServer.Battle
                 // 미리 이동 시켜 본다.
                 PlayerNextPosData(member.MemberActionType, ref member.MemberLook, ref pos);
 
-                // 맵 충돌 체크를 한다.
-                if (pos.m_X >= MIN_PLAYER_POSX && pos.m_X <= MAX_PLAYER_POSX &&
-                    pos.m_Y <= MAX_PLAYER_POSY && pos.m_Y >= MIN_PLAYER_POSY)
+                // 맵 충돌 체크를 한다. 
+                if (pos.m_X >= BattleMapData.m_MinMapSizeX && pos.m_X <= BattleMapData.m_MaxMapSizeX &&
+                    pos.m_Y <= BattleMapData.m_MaxMapSizeY - 1.5F && pos.m_Y >= BattleMapData.m_MinMapSizeY)
                 {
                     member.MemberPos.m_X = pos.m_X;
                     member.MemberPos.m_Y = pos.m_Y;

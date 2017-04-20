@@ -13,6 +13,10 @@ namespace GameServer.Common.Packet
         SC_MATCH_BATTLE_ROOM,
         CS_BATTLE_MEMBER_DATA,
         SC_BATTLE_MEMBER_DATA,
+        CS_READY_BATTLE,
+        SC_START_BATTLE,
+        SC_END_BATTLE,
+        CS_LEAVE_BATTLE_ROOM,
     }
 
     [MessagePackEnum]
@@ -58,6 +62,33 @@ namespace GameServer.Common.Packet
         }
     }
 
+    public class ObstacleData
+    {
+        [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
+        public PosData m_Pos;
+    }
+
+    public class BattleMapData
+    {
+        [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
+        public int m_MapIndex = 0;
+
+        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
+        public float m_MinMapSizeX = 0.0F;
+
+        [MessagePackMember(2, NilImplication = NilImplication.MemberDefault)]
+        public float m_MaxMapSizeX = 0.0F;
+
+        [MessagePackMember(3, NilImplication = NilImplication.MemberDefault)]
+        public float m_MinMapSizeY = 0.0F;
+
+        [MessagePackMember(4, NilImplication = NilImplication.MemberDefault)]
+        public float m_MaxMapSizeY = 0.0F;
+
+        [MessagePackMember(5, NilImplication = NilImplication.MemberDefault)]
+        public List<ObstacleData> m_ObstacleDatas = new List<ObstacleData>();
+    }
+
     public class BattleMemberData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
@@ -73,33 +104,15 @@ namespace GameServer.Common.Packet
     public class CSBattleMemberActionData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
-        public int m_RoomIndex = -1;
-
-        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
-        public int m_PlayerIndex = -1;
-
-        [MessagePackMember(2, NilImplication = NilImplication.MemberDefault)]
         public ACTION_TYPE m_ActionType = ACTION_TYPE.NONE;
-
-        public CSBattleMemberActionData() { }
-
-        public CSBattleMemberActionData(CSBattleMemberActionData data)
-        {
-            m_RoomIndex   = data.m_RoomIndex;
-            m_PlayerIndex = data.m_PlayerIndex;
-            m_ActionType  = data.m_ActionType;
-        }
     }
 
     public class SCSyncBattleData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
-        public int m_Frame = 0;
-
-        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
         public int m_GameTimeRemain = 0;
 
-        [MessagePackMember(2, NilImplication = NilImplication.MemberDefault)]
+        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
         public Dictionary<int, BattleMemberData> m_BattleMemberDatas = new Dictionary<int, BattleMemberData>();
     }
 
@@ -108,13 +121,8 @@ namespace GameServer.Common.Packet
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
         public int m_RoomIndex = -1;
 
-        // 추후 맵 정보도 여기다가 담아서 보낼거야
-    }
-
-    public class CSBattleMemberData
-    {
-        [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
-        public int m_RoomIndex = -1;
+        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
+        public BattleMapData m_BattleMapData;
     }
 
     public class SCBattleMemberData

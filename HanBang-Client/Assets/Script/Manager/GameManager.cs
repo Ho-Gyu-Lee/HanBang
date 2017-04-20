@@ -27,6 +27,8 @@ public class GameManager : MonoBehaviour
 
     private Queue<CSBattleMemberActionData> m_Player1ActionDataQueue = new Queue<CSBattleMemberActionData>();
 
+    private GameObject m_CharacterGroup = null;
+
     private GameObject m_Player1 = null;
     private GameObject m_Player2 = null;
 
@@ -38,28 +40,9 @@ public class GameManager : MonoBehaviour
 
     public int PlayerIndex { get; private set; }
 
-    private object m_FrameLock = new object();
+    public int EnumyPlayerIndex { get; private set; }
 
-    private int m_Frame = -1;
-
-    public int Frame
-    {
-        get
-        {
-            lock(m_FrameLock)
-            {
-                return m_Frame;
-            }
-        }
-
-        set
-        {
-            lock (m_FrameLock)
-            {
-                m_Frame = value;
-            }
-        }
-    }
+    public BattleMapData BattleMapData { get; private set; }
 
     public GameObject Player(int playerIndex)
     {
@@ -84,7 +67,8 @@ public class GameManager : MonoBehaviour
             m_Characters.Add(gameobject.name, gameobject);
         }
 
-        m_BattleTimeText = GameObject.Find("Text").GetComponent<Text>();
+        m_BattleTimeText = GameObject.Find("GameTimeRemain").GetComponent<Text>();
+        m_CharacterGroup = GameObject.Find("CharacterGroup");
 
         // 임시 캐릭터 리소스
         m_CharacterResourcesName.Add("Rogue_06");
@@ -99,9 +83,19 @@ public class GameManager : MonoBehaviour
 
     }
 
-    public void InitializeBattleRoom(int roomIndex)
+    public void InitializeBattleRoom(int roomIndex, BattleMapData battleMapData)
     {
         RoomIndex = roomIndex;
+        BattleMapData = battleMapData;
+    }
+
+    public void InitializePlayer()
+    {
+        Player playerScript = m_Player1.GetComponent<Player>();
+        playerScript.Initialize(PlayerIndex);
+
+        Enemy enemyscript = m_Player2.GetComponent<Enemy>();
+        enemyscript.Initialize(EnumyPlayerIndex);
     }
 
     public void OnPlayerSpawn(int playerIndex, PosData pos)
@@ -110,29 +104,35 @@ public class GameManager : MonoBehaviour
 
         PlayerIndex = playerIndex;
 
-        m_Player1 = Instantiate(m_Characters[m_CharacterResourcesName[playerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
+        m_Player1 = Instantiate(m_Characters[m_CharacterResourcesName[PlayerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
         m_Player1.transform.localScale = new Vector3(0.23F, 0.23F, 1);
+        m_Player1.transform.parent = m_CharacterGroup.transform;
         m_Player1.AddComponent<Player>();
 
         Player script = m_Player1.GetComponent<Player>();
-        script.InitializeMoveData(RoomIndex, playerIndex);
+        script.Initialize(PlayerIndex);
     }
 
     public void OnEnemySpawn(int playerIndex, PosData pos)
     {
         if (m_Player2 != null) return;
 
-        m_Player2 = Instantiate(m_Characters[m_CharacterResourcesName[playerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
+        EnumyPlayerIndex = playerIndex;
+
+        m_Player2 = Instantiate(m_Characters[m_CharacterResourcesName[EnumyPlayerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
         m_Player2.transform.localScale = new Vector3(0.23F, 0.23F, 1);
+        m_Player2.transform.parent = m_CharacterGroup.transform;
         m_Player2.AddComponent<Enemy>();
 
         Enemy script = m_Player2.GetComponent<Enemy>();
-        script.Initialize(playerIndex);
+        script.Initialize(EnumyPlayerIndex);
+
+        // 적 정보 까지 모두 받으면 준비 완료
+        ClientNetworkManager.Instance.SendManager.SendCSReadyBattle();
     }
 
     public void OnSyncBattle(SCSyncBattleData data)
     {
-        Frame = data.m_Frame;
         m_BattleTimeText.text = "남은 시간 : " + data.m_GameTimeRemain.ToString();
 
         foreach (BattleMemberData member in data.m_BattleMemberDatas.Values)

@@ -18,19 +18,12 @@ public class BackGroundManager : MonoBehaviour
             m_TilePrefabs.Add(gameobject.name, gameobject);
         }
 
-        for (int i = 0; i < 30; ++i)
+        for (int i = 0; i < 20; ++i)
         {
-            for(int j = 0; j < 30; ++j)
+            for(int j = 0; j < 20; ++j)
             {
                 GameObject tile = null;
-                if (i == 4 && j < 10)
-                {
-                    tile = Instantiate(m_TilePrefabs["road_middle_hor"], new Vector3(-19.2F + (1.28F * j), 19.2F - (1.28F * i), 10), Quaternion.identity);
-                }
-                else
-                {
-                    tile = Instantiate(m_TilePrefabs["grass"], new Vector3(-19.2F + (1.28F * j), 19.2F - (1.28F * i), 10), Quaternion.identity);
-                }
+                tile = Instantiate(m_TilePrefabs["grass"], new Vector3(-12.8F + (1.28F * j), 12.8F - (1.28F * i), 10), Quaternion.identity);
                 tile.name = i.ToString() + "_" + j.ToString();
                 tile.transform.parent = TileMap01.transform;
             }

@@ -12,19 +12,27 @@ namespace GameServer
 
         public PacketSendManager SendManager { get { return m_PacketSendManager; } }
 
+        private int m_RoomIndex = -1;
+
+        private int m_BattlePlayerIndex = -1;
+
         public GameSession()
             : base()
         {
             m_PacketSendManager.SendHandler += SendMsg;
 
-            m_PacketReceiveManager.CSBattleMemberActionData       += OnCSActionData;
+            m_PacketReceiveManager.CSBattleMemberActionData += OnCSActionData;
+
             m_PacketReceiveManager.CSMatchBattleRoom  += OnMatchBattleRoom;
             m_PacketReceiveManager.CSBattleMemberData += OnBattleMemberData;
+
+            m_PacketReceiveManager.CSReadyBattle += OnReadyBattle;
+            m_PacketReceiveManager.CSLeaveBattleRoom += OnLeaveBattleRoom;
         }
 
         protected override void OnSessionClosed(CloseReason reason)
         {
-
+            OnLeaveBattleRoom();
         }
 
         public byte[] Write(int MsgType, byte[] MsgContent, int length)
@@ -56,27 +64,28 @@ namespace GameServer
 
         private void OnCSActionData(CSBattleMemberActionData data)
         {
-            Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(data.m_RoomIndex);
+            Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(m_RoomIndex);
             if (battleRoom == null)
             {
                 Console.WriteLine("Not Find Battle Room");
                 return;
             }
 
-            battleRoom.SetBattleMemberActionData(data.m_PlayerIndex, data.m_ActionType);
+            battleRoom.SetBattleMemberActionData(m_BattlePlayerIndex, data.m_ActionType);
         }
 
         private void OnMatchBattleRoom()
         {
             SCMatchBattleRoomData data = new SCMatchBattleRoomData();
-            Room.BattleRoomManager.Instance.MatchBattleRoom(this, ref data.m_RoomIndex);
+            Room.BattleRoomManager.Instance.MatchBattleRoom(this, ref m_RoomIndex, ref m_BattlePlayerIndex, ref data.m_BattleMapData);
 
+            data.m_RoomIndex = m_RoomIndex;
             SendManager.SendSCMatchBattleRoomData(data);
         }
 
-        private void OnBattleMemberData(CSBattleMemberData data)
+        private void OnBattleMemberData()
         {
-            Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(data.m_RoomIndex);
+            Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(m_RoomIndex);
             if (battleRoom == null)
             {
                 Console.WriteLine("Not Find Battle Room");
@@ -84,6 +93,33 @@ namespace GameServer
             }
 
             battleRoom.OnBattleMemberData();
+        }
+
+        private void OnReadyBattle()
+        {
+            Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(m_RoomIndex);
+            if (battleRoom == null)
+            {
+                Console.WriteLine("Not Find Battle Room");
+                return;
+            }
+
+            battleRoom.ReadyBattle(m_BattlePlayerIndex);
+        }
+
+        private void OnLeaveBattleRoom()
+        {
+            if (m_RoomIndex > -1 && m_BattlePlayerIndex > -1)
+            {
+                Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(m_RoomIndex);
+                if (battleRoom != null)
+                {
+                    battleRoom.LeaveBattleRoom(m_BattlePlayerIndex);
+                }
+
+                m_RoomIndex = -1;
+                m_BattlePlayerIndex = -1;
+            }
         }
     }
 }

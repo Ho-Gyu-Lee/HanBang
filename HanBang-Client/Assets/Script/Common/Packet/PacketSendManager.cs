@@ -63,15 +63,10 @@ namespace GameServer.Common.Packet
             SendHandler((int)PACKET_TYPE.SC_MATCH_BATTLE_ROOM, MemStream.GetBuffer(), (int)MemStream.Length);
         }
 
-        public void SendCSBattleMemberData(CSBattleMemberData data)
+        public void SendCSBattleMemberData()
         {
-            MemStream.SetLength(0);
-            MemStream.Position = 0;
-
-            MessagePackSerializer<CSBattleMemberData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSBattleMemberData>();
-            serializer.Pack(MemStream, data);
-
-            SendHandler((int)PACKET_TYPE.CS_BATTLE_MEMBER_DATA, MemStream.GetBuffer(), (int)MemStream.Length);
+            byte[] buffer = new byte[0];
+            SendHandler((int)PACKET_TYPE.CS_BATTLE_MEMBER_DATA, buffer, buffer.Length);
         }
 
         public void SendSCBattleMemberData(SCBattleMemberData data)
@@ -83,6 +78,30 @@ namespace GameServer.Common.Packet
             serializer.Pack(MemStream, data);
 
             SendHandler((int)PACKET_TYPE.SC_BATTLE_MEMBER_DATA, MemStream.GetBuffer(), (int)MemStream.Length);
+        }
+
+        public void SendCSReadyBattle()
+        {
+            byte[] buffer = new byte[0];
+            SendHandler((int)PACKET_TYPE.CS_READY_BATTLE, buffer, buffer.Length);
+        }
+
+        public void SendSCStartBattle()
+        {
+            byte[] buffer = new byte[0];
+            SendHandler((int)PACKET_TYPE.SC_START_BATTLE, buffer, buffer.Length);
+        }
+
+        public void SendSCEndBattle()
+        {
+            byte[] buffer = new byte[0];
+            SendHandler((int)PACKET_TYPE.SC_END_BATTLE, buffer, buffer.Length);
+        }
+
+        public void SendCSLeaveBattleRoom()
+        {
+            byte[] buffer = new byte[0];
+            SendHandler((int)PACKET_TYPE.CS_LEAVE_BATTLE_ROOM, buffer, buffer.Length);
         }
     }
 }

@@ -15,16 +15,31 @@ public class Player : MonoBehaviour
 
     private CSBattleMemberActionData m_BattleMemberActionData = new CSBattleMemberActionData();
 
-    public void InitializeMoveData(int roomIndex, int playerIndex)
+    public void Initialize(int playerIndex)
     {
-        m_BattleMemberActionData.m_PlayerIndex = playerIndex;
-        m_BattleMemberActionData.m_RoomIndex   = roomIndex;
-        m_BattleMemberActionData.m_ActionType  = ACTION_TYPE.NONE;
+        m_IsPlayerDie = false;
+        m_IsAttackAnimation = false;
 
-        if(playerIndex == 1)
+        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.NONE;
+
+        if(m_PlayerAnimator != null)
+            m_PlayerAnimator.SetInteger("ActionControll", 0);
+
+        if (playerIndex == 1)
         {
-            m_IsPlayerRotation = true;
-            transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+            if (m_IsPlayerRotation == false)
+            {
+                m_IsPlayerRotation = true;
+                transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+            }
+        }
+        else
+        {
+            if (m_IsPlayerRotation)
+            {
+                m_IsPlayerRotation = false;
+                transform.transform.Rotate(new Vector3(0.0F, 180.0F, 0.0F));
+            }
         }
     }
 
@@ -88,22 +103,29 @@ public class Player : MonoBehaviour
         {
             SendPlayerIdle();
         }
-        
-        Vector3 playerInfo = transform.transform.position;
 
         // 카메라 충돌 체크
-        Vector3 cameraPostion = m_Camera.transform.position;
-        if (playerInfo.x > -10.9F && playerInfo.x < 9.6F)
+        if(GameManager.Instance.BattleMapData != null)
         {
-            cameraPostion.x = playerInfo.x;
-        }
+            float minMapSizeX = GameManager.Instance.BattleMapData.m_MinMapSizeX;
+            float maxMapSizeX = GameManager.Instance.BattleMapData.m_MaxMapSizeX;
+            float minMapSizeY = GameManager.Instance.BattleMapData.m_MinMapSizeY;
+            float maxMapSizeY = GameManager.Instance.BattleMapData.m_MaxMapSizeY;
 
-        if (playerInfo.y < 13.7F && playerInfo.y > -14.2F)
-        {
-            cameraPostion.y = playerInfo.y + 1;
-        }
+            Vector3 playerInfo = transform.transform.position;
+            Vector3 cameraPostion = m_Camera.transform.position;
+            if (playerInfo.x >= (minMapSizeX + 8.3F) && playerInfo.x <= (maxMapSizeX - 8.12F))
+            {
+                cameraPostion.x = playerInfo.x;
+            }
 
-        m_Camera.transform.position = new Vector3(cameraPostion.x, cameraPostion.y, cameraPostion.z);
+            if (playerInfo.y >= (minMapSizeY + 3.32F) && playerInfo.y <= (maxMapSizeY - 5.5F))
+            {
+                cameraPostion.y = playerInfo.y + 1;
+            }
+
+            m_Camera.transform.position = new Vector3(cameraPostion.x, cameraPostion.y, cameraPostion.z);
+        }
 
         // 공격 모션 완료
         if (m_IsAttackAnimation)
@@ -235,6 +257,10 @@ public class Player : MonoBehaviour
                 break;
             case ACTION_TYPE.DIE:
                 {
+                    Vector3 playerInfo = transform.transform.position;
+                    GameObject instance = Instantiate(Resources.Load("Cube Space/Prefabs/Ef_Electro_02", typeof(GameObject)) as GameObject, new Vector3(playerInfo.x, playerInfo.y + 1.0F, 0.0F), Quaternion.identity);
+                    instance.transform.localScale = new Vector3(1.5F, 1.5F, 1);
+
                     m_IsPlayerDie = true;
                     m_PlayerAnimator.SetInteger("ActionControll", 3);
                 }

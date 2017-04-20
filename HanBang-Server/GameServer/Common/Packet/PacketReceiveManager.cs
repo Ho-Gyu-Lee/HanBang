@@ -19,11 +19,23 @@ namespace GameServer.Common.Packet
         public delegate void OnSCMatchBattleRoomDataDelegate(SCMatchBattleRoomData data);
         public OnSCMatchBattleRoomDataDelegate SCMatchBattleRoomData;
 
-        public delegate void OnCSBattleMemberDataDelegate(CSBattleMemberData data);
+        public delegate void OnCSBattleMemberDataDelegate();
         public OnCSBattleMemberDataDelegate CSBattleMemberData;
 
         public delegate void OnSCBattleMemberDataDelegate(SCBattleMemberData data);
         public OnSCBattleMemberDataDelegate SCBattleMemberData;
+
+        public delegate void OnCSReadyBattleDelegate();
+        public OnCSReadyBattleDelegate CSReadyBattle;
+
+        public delegate void OnSCStartBattleDelegate();
+        public OnSCStartBattleDelegate SCStartBattle;
+
+        public delegate void OnSCEndBattleDelegate();
+        public OnSCEndBattleDelegate SCEndBattle;
+
+        public delegate void OnCSLeaveBattleRoomDelegate();
+        public OnCSLeaveBattleRoomDelegate CSLeaveBattleRoom;
 
         public void OnReceiveMessage(int type, byte[] body)
         {
@@ -62,8 +74,7 @@ namespace GameServer.Common.Packet
 
                 case PACKET_TYPE.CS_BATTLE_MEMBER_DATA:
                     {
-                        MessagePackSerializer<CSBattleMemberData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSBattleMemberData>();
-                        CSBattleMemberData(derializer.Unpack(m_MemStream));
+                        CSBattleMemberData();
                     }
                     break;
 
@@ -71,6 +82,30 @@ namespace GameServer.Common.Packet
                     {
                         MessagePackSerializer<SCBattleMemberData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCBattleMemberData>();
                         SCBattleMemberData(derializer.Unpack(m_MemStream));
+                    }
+                    break;
+
+                case PACKET_TYPE.CS_READY_BATTLE:
+                    {
+                        CSReadyBattle();
+                    }
+                    break;
+
+                case PACKET_TYPE.SC_START_BATTLE:
+                    {
+                        SCStartBattle();
+                    }
+                    break;
+
+                case PACKET_TYPE.SC_END_BATTLE:
+                    {
+                        SCEndBattle();
+                    }
+                    break;
+
+                case PACKET_TYPE.CS_LEAVE_BATTLE_ROOM:
+                    {
+                        CSLeaveBattleRoom();
                     }
                     break;
             }

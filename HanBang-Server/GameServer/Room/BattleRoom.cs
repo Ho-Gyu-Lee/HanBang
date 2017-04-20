@@ -2,6 +2,7 @@
 using GameServer.Common.Packet;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace GameServer.Room
 {
@@ -15,15 +16,24 @@ namespace GameServer.Room
 
         private BattleManager m_BattleManager = new BattleManager();
 
-        private volatile int m_Frame = 0;
-
         private float m_TimePast = 0.0F;
 
         private int m_GameTimeRemain = 0;
 
-        private bool m_IsGameStart = false;
+        private object m_GameStartFlagLock = new object();
+
+        private bool m_IsStartGame = false;
+
+        private bool IsStartGame
+        {
+            get { lock (m_GameStartFlagLock) return m_IsStartGame; }
+            set { lock (m_GameStartFlagLock) m_IsStartGame = value; }
+        }
 
         public int m_RoomIndex = -1;
+
+        private bool m_IsReadyPlayer1 = false;
+        private bool m_IsReadyPlayer2 = false;
 
         public int MemberCount { get { return m_BattleMembers.Count; } }
 
@@ -48,76 +58,135 @@ namespace GameServer.Room
             }
         }
 
+        private void RestartBattle()
+        {
+            m_TimePast = 0.0F;
+            foreach (BattleMember member in m_BattleMembers.Values)
+            {
+                member.Initialize();
+            }
+            IsStartGame = true;
+
+            foreach (BattleMember member in m_BattleMembers.Values)
+            {
+                member.GameSession.SendManager.SendSCStartBattle();
+            }
+        }
+
+        private void SendBroadcastEndBattle()
+        {
+            foreach (BattleMember member in m_BattleMembers.Values)
+            {
+                member.GameSession.SendManager.SendSCEndBattle();
+            }
+        }
+
         public void Update(object state)
         {
             lock(state)
             {
-                m_BattleManager.Update();
-
-                PLAYER_INDEX winPlayer = m_BattleManager.UpdateGameResult();
-
-                if (m_GameTimeRemain < 0)
+                if(IsStartGame)
                 {
-                    m_TimePast = 0.0F;
+                    m_BattleManager.Update();
 
-                    foreach (BattleMember member in m_BattleMembers.Values)
+                    PLAYER_INDEX winPlayer = m_BattleManager.UpdateGameResult();
+
+                    // 시간이 종료 되어 무승부 처리
+                    if (m_GameTimeRemain < 0)
                     {
-                        member.Initialize();
-                    }
-                }
-                else
-                {
-                    // 누군가 죽어 있다면
-                    foreach (BattleMember member in m_BattleMembers.Values)
-                    {
-                        if(member.MemberActionType == ACTION_TYPE.DIE)
+                        IsStartGame = false;
+
+                        // 2초 후에 게임 다시  시작
+                        var delay = Task.Delay(2000).ContinueWith(_ =>
                         {
-                            member.Initialize();
-                            m_GameTimeRemain = 0;
-                            m_TimePast = 0.0F;
-                        }
+                            RestartBattle();
+                        });
                     }
-                }
 
-                m_TimePast += 1000 / 60;
-                m_GameTimeRemain = 10 - ((int)m_TimePast / 1000);
+                    m_TimePast += 1000 / 60;
+                    m_GameTimeRemain = 60 - ((int)m_TimePast / 1000);
 
-                Common.Packet.SCSyncBattleData syncBattleData = new Common.Packet.SCSyncBattleData();
-                syncBattleData.m_Frame = m_Frame;
-                syncBattleData.m_GameTimeRemain = m_GameTimeRemain;
+                    Common.Packet.SCSyncBattleData syncBattleData = new Common.Packet.SCSyncBattleData();
+                    syncBattleData.m_GameTimeRemain = m_GameTimeRemain;
 
-                foreach (BattleMember member in m_BattleMembers.Values)
-                {
-                    if(winPlayer != PLAYER_INDEX.NONE)
+                    foreach (BattleMember member in m_BattleMembers.Values)
                     {
-                        if (member.PlayerIndex != (int)winPlayer)
-                            member.BattleMemberData.m_ActionType = ACTION_TYPE.DIE;
+                        if (winPlayer != PLAYER_INDEX.NONE)
+                        {
+                            // 누군가 승리
+                            if (member.PlayerIndex != (int)winPlayer)
+                            {
+                                m_IsStartGame = false;
+
+                                member.BattleMemberData.m_ActionType = ACTION_TYPE.DIE;
+
+                                // 2초 후에 게임 다시  시작
+                                var delay = Task.Delay(2000).ContinueWith(_ =>
+                                {
+                                    RestartBattle();
+                                });
+                            }
+                        }
+                        syncBattleData.m_BattleMemberDatas.Add(member.PlayerIndex, member.BattleMemberData);
                     }
-                    syncBattleData.m_BattleMemberDatas.Add(member.PlayerIndex, member.BattleMemberData);
-                }
 
-                foreach (BattleMember member in m_BattleMembers.Values)
-                {
-                    member.GameSession.SendManager.SendSCSyncBattleData(syncBattleData);
+                    foreach (BattleMember member in m_BattleMembers.Values)
+                    {
+                        member.GameSession.SendManager.SendSCSyncBattleData(syncBattleData);
+                    }
                 }
-
-                Interlocked.Increment(ref m_Frame);
             }
         }
 
-        public void JoinBattleRoom(GameSession session, out int roomIndex)
+        public void JoinBattleRoom(GameSession session, out int roomIndex, out int playerIndex, out BattleMapData battleMapData)
         {
-            roomIndex   = m_RoomIndex;
+            roomIndex     = m_RoomIndex;
+            playerIndex   = MemberCount;
+            battleMapData = m_BattleManager.BattleMapData;
 
             BattleMember member = new BattleMember(MemberCount, session);
             m_BattleMembers.TryAdd(member.PlayerIndex, member);
             m_BattleManager.SetBattleMember(member.PlayerIndex, member);
-
-            if (MemberCount == MAX_MEMBER_COUNT)
-                m_IsGameStart = true;
         }
 
-        public void CloseBattle()
+        public void ReadyBattle(int playerIndex)
+        {
+            switch(playerIndex)
+            {
+                case 0:
+                    m_IsReadyPlayer1 = true;
+                    break;
+                case 1:
+                    m_IsReadyPlayer2 = true;
+                    break;
+            }
+
+            if (m_IsReadyPlayer1 && m_IsReadyPlayer2)
+            {
+                IsStartGame = true;
+
+                foreach (BattleMember member in m_BattleMembers.Values)
+                {
+                    member.GameSession.SendManager.SendSCStartBattle();
+                }
+            }
+        }
+
+        public bool LeaveBattleRoom(int playerIndex)
+        {
+            BattleMember member = null;
+            m_BattleMembers.TryRemove(playerIndex, out member);
+
+            if (MemberCount == 0)
+            {
+                CloseBattleRoom();
+                return true;
+            }
+
+            return false;
+        }
+
+        public void CloseBattleRoom()
         {
             if (m_BattleRoomTimer != null)
             {

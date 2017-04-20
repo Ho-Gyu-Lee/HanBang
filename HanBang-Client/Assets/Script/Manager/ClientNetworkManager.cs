@@ -58,6 +58,8 @@ public class ClientNetworkManager : MonoBehaviour
         m_PacketReceiveManager.SCMatchBattleRoomData += OnSCMatchBattleRoomData;
         m_PacketReceiveManager.SCBattleMemberData    += OnSCBattleMemberData;
         m_PacketReceiveManager.SCSyncBattleData      += OnSCSyncBattleData;
+
+        m_PacketReceiveManager.SCStartBattle += OnSCStartBattle;
     }
 	
 	// Update is called once per frame
@@ -111,9 +113,9 @@ public class ClientNetworkManager : MonoBehaviour
 
     private void OnSCMatchBattleRoomData(SCMatchBattleRoomData data)
     {
-        GameManager.Instance.InitializeBattleRoom(data.m_RoomIndex);
+        GameManager.Instance.InitializeBattleRoom(data.m_RoomIndex, data.m_BattleMapData);
 
-        SendManager.SendCSBattleMemberData(new CSBattleMemberData() { m_RoomIndex = data.m_RoomIndex });
+        SendManager.SendCSBattleMemberData();
     }
 
     private void OnSCBattleMemberData(SCBattleMemberData data)
@@ -134,5 +136,10 @@ public class ClientNetworkManager : MonoBehaviour
     private void OnSCSyncBattleData(SCSyncBattleData data)
     {
         GameManager.Instance.OnSyncBattle(data);
+    }
+
+    private void OnSCStartBattle()
+    {
+        GameManager.Instance.InitializePlayer();
     }
 }
