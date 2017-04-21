@@ -60,6 +60,11 @@
     <Compile Include="Battle\BattleMember.cs" />
     <Compile Include="Room\BattleRoom.cs" />
     <Compile Include="Room\BattleRoomManager.cs" />
+    <Compile Include="Room\RoomState\BattleRoomEndState.cs" />
+    <Compile Include="Room\RoomState\BattleRoomPlayState.cs" />
+    <Compile Include="Room\RoomState\BattleRoomReadyState.cs" />
+    <Compile Include="Room\RoomState\BattleRoomWaitState.cs" />
+    <Compile Include="Room\RoomState\BattleRoomState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

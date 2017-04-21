@@ -1,5 +1,6 @@
 ﻿using GameServer.Battle;
 using GameServer.Common.Packet;
+using GameServer.Room.RoomState;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -10,7 +11,7 @@ namespace GameServer.Room
 {
     class BattleRoom
     {
-        private const int MAX_MEMBER_COUNT = 2;
+        public const int MAX_MEMBER_COUNT = 2;
 
         private System.Threading.Timer m_BattleRoomTimer = null;
 
@@ -18,7 +19,11 @@ namespace GameServer.Room
 
         private BattleManager m_BattleManager = new BattleManager();
 
-        public BattleTerrainData BattleTerrainData { get; private set; }
+        private object StateLock = new object();
+
+        private ROOM_STATE State { get; set; }
+
+        private BattleRoomState BattleRoomState { get; set; }
 
         private volatile int m_Frame = 0;
 
@@ -26,12 +31,15 @@ namespace GameServer.Room
 
         private int m_GameTimeRemain = 0;
 
-        private object m_GameStartFlagLock = new object();
+        public BattleTerrainData BattleTerrainData { get; private set; }
 
         public int m_RoomIndex = -1;
 
         private bool m_IsReadyPlayer1 = false;
         private bool m_IsReadyPlayer2 = false;
+
+        private int m_Player1KillCount = 0;
+        private int m_Player2KillCount = 0;
 
         public int MemberCount { get { return m_BattleMembers.Count; } }
 
@@ -39,7 +47,7 @@ namespace GameServer.Room
         {
             m_RoomIndex = roomIndex;
 
-            // 임시 맵 정보를 셋팅한다. 추후 파일을 읽어서 셋팅 할 거임
+            #region 임시 맵 정보 셋팅
             BattleTerrainData = new BattleTerrainData();
 
             BattleTerrainData.m_MinSizeX = -12.80F;
@@ -96,6 +104,7 @@ namespace GameServer.Room
             obstacleData8.m_Pos.m_X = random.Next(-11, 11);
             obstacleData8.m_Pos.m_Y = random.Next(-11, 11);
             BattleTerrainData.m_ObstacleDatas.Add(obstacleData8);
+            #endregion
         }
 
         public void OnOnBattleMemberActionData(PLAYER_INDEX playerIndex, CSBattleMemberActionData data)
@@ -119,12 +128,71 @@ namespace GameServer.Room
             }
         }
 
-        private void RestartBattle()
+        public void UpdateBattleManager()
         {
-            m_TimePast = 0.0F;
-            foreach (BattleMember member in m_BattleMembers.Values)
+            // 공격 판정
+            PLAYER_INDEX loserPlayer = PLAYER_INDEX.NONE;
+            if (MemberCount == MAX_MEMBER_COUNT && 
+                m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1) && 
+                m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
             {
-                member.Initialize();
+                loserPlayer = m_BattleManager.UpdateGameResult(m_BattleMembers[PLAYER_INDEX.PLAYER_1], m_BattleMembers[PLAYER_INDEX.PLAYER_2]);
+            }
+
+            if (loserPlayer == PLAYER_INDEX.NONE)
+            {
+                // 이동 처리
+                foreach (BattleMember member in m_BattleMembers.Values)
+                {
+                    m_BattleManager.UpdatePlayerTerrainMove(member, BattleTerrainData);
+                }
+            }
+            else
+            {
+                // 승리 처리
+                if (m_BattleMembers.ContainsKey(loserPlayer))
+                {
+                    m_BattleMembers[loserPlayer].MemberActionType = ACTION_TYPE.DIE;
+
+                    switch (loserPlayer)
+                    {
+                        case PLAYER_INDEX.PLAYER_1:
+                            m_Player2KillCount++;
+                            break;
+                        case PLAYER_INDEX.PLAYER_2:
+                            m_Player1KillCount++;
+                            break;
+                    }
+
+                    ChangeBattleRoomState(ROOM_STATE.WAIT);
+                }
+            }
+        }
+
+        private void ChangeBattleRoomState(ROOM_STATE state)
+        {
+            lock(StateLock)
+            {
+                switch (state)
+                {
+                    case ROOM_STATE.READY:
+                        BattleRoomState = new BattleRoomReadyState(this);
+                        break;
+                    case ROOM_STATE.WAIT:
+                        BattleRoomState = new BattleRoomWaitState(this);
+                        break;
+                    case ROOM_STATE.PLAY:
+                        BattleRoomState = new BattleRoomPlayState(this);
+                        break;
+                    case ROOM_STATE.END:
+                        BattleRoomState = new BattleRoomEndState(this);
+                        break;
+                    default:
+                        BattleRoomState = null;
+                        break;
+                }
+
+                State = state;
             }
         }
 
@@ -135,44 +203,14 @@ namespace GameServer.Room
                 m_TimePast += 1000 / 60;
                 m_GameTimeRemain = 60 - ((int)m_TimePast / 1000);
 
-                // 시간이 종료 되면 게임 결과 보내기
-                if (m_GameTimeRemain < 0)
+                // 시간이 종료가 되거나 누군가 3승을 먼저 할 경우 
+                if (m_GameTimeRemain < 0 || m_Player1KillCount == 3 || m_Player2KillCount == 3)
                 {
+                    ChangeBattleRoomState(ROOM_STATE.END);
                     return;
                 }
 
-                // 다음 틱에 누군가 죽어 있다면 대기 모드 후 다시 캐릭터 살림
-                foreach (BattleMember member in m_BattleMembers.Values)
-                {
-                    if (member.MemberActionType == ACTION_TYPE.DIE)
-                    {
-                        return;
-                    }
-                }
-
-                // 공격 판정
-                PLAYER_INDEX loserPlayer = PLAYER_INDEX.NONE;
-                if(MemberCount == MAX_MEMBER_COUNT && m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1) && m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
-                {
-                    loserPlayer = m_BattleManager.UpdateGameResult(m_BattleMembers[PLAYER_INDEX.PLAYER_1], m_BattleMembers[PLAYER_INDEX.PLAYER_2]);
-                }
-
-                if(loserPlayer == PLAYER_INDEX.NONE)
-                {
-                    // 이동 처리
-                    foreach (BattleMember member in m_BattleMembers.Values)
-                    {
-                        m_BattleManager.UpdatePlayerTerrainMove(member, BattleTerrainData);
-                    }
-                }
-                else
-                {
-                    // 승리 처리
-                    if(m_BattleMembers.ContainsKey(loserPlayer))
-                    {
-                        m_BattleMembers[loserPlayer].MemberActionType = ACTION_TYPE.DIE;
-                    }
-                }
+                BattleRoomState.Update();
 
                 Common.Packet.SCSyncBattleData syncBattleData = new Common.Packet.SCSyncBattleData();
                 syncBattleData.m_Frame = m_Frame;
@@ -215,7 +253,10 @@ namespace GameServer.Room
             }
 
             if (m_IsReadyPlayer1 && m_IsReadyPlayer2)
+            {
                 m_BattleRoomTimer = new System.Threading.Timer(Update, new object(), 0, 1000 / 60);
+                ChangeBattleRoomState(ROOM_STATE.READY);
+            }
         }
 
         public bool LeaveBattleRoom(PLAYER_INDEX playerIndex)

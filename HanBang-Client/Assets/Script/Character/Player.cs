@@ -257,6 +257,8 @@ public class Player : MonoBehaviour
                 break;
             case ACTION_TYPE.DIE:
                 {
+                    if (m_IsPlayerDie) break;
+
                     Vector3 playerInfo = transform.transform.position;
                     GameObject instance = Instantiate(Resources.Load("Cube Space/Prefabs/Ef_Electro_02", typeof(GameObject)) as GameObject, new Vector3(playerInfo.x, playerInfo.y + 1.0F, 0.0F), Quaternion.identity);
                     instance.transform.localScale = new Vector3(1.5F, 1.5F, 1);

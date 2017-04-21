@@ -9,6 +9,8 @@ public class Enemy : MonoBehaviour
 
     private bool m_IsPlayerRotation = false;
 
+    private bool m_IsEnemyDie = false;
+
     public void Initialize(PLAYER_INDEX playerIndex)
     {
         if (m_EnemyAnimator != null)
@@ -87,10 +89,13 @@ public class Enemy : MonoBehaviour
                 break;
             case ACTION_TYPE.DIE:
                 {
+                    if (m_IsEnemyDie) break;
+
                     Vector3 playerInfo = transform.transform.position;
                     GameObject instance = Instantiate(Resources.Load("Cube Space/Prefabs/Ef_Electro_02", typeof(GameObject)) as GameObject, new Vector3(playerInfo.x, playerInfo.y + 1.0F, 0.0F), Quaternion.identity);
                     instance.transform.localScale = new Vector3(1.5F, 1.5F, 1);
 
+                    m_IsEnemyDie = true;
                     m_EnemyAnimator.SetInteger("ActionControll", 3);
                 }
                 break;
