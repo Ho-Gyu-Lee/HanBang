@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using GameServer.Common.Util;
 
 namespace GameServer.Room
 {
@@ -27,9 +28,9 @@ namespace GameServer.Room
 
         private volatile int m_Frame = 0;
 
-        private float m_TimePast = 0.0F;
+        private float m_GameTimeRemain = 60.0F;
 
-        private int m_GameTimeRemain = 0;
+        private Time m_Time = null;
 
         public BattleTerrainData BattleTerrainData { get; private set; }
 
@@ -128,8 +129,10 @@ namespace GameServer.Room
             }
         }
 
-        public void UpdateBattleManager()
+        public void UpdateBattleManager(double deltatime)
         {
+            m_GameTimeRemain -= (float)deltatime;
+
             // 공격 판정
             PLAYER_INDEX loserPlayer = PLAYER_INDEX.NONE;
             if (MemberCount == MAX_MEMBER_COUNT && 
@@ -144,7 +147,7 @@ namespace GameServer.Room
                 // 이동 처리
                 foreach (BattleMember member in m_BattleMembers.Values)
                 {
-                    m_BattleManager.UpdatePlayerTerrainMove(member, BattleTerrainData);
+                    m_BattleManager.UpdatePlayerTerrainMove(deltatime, member, BattleTerrainData);
                 }
             }
             else
@@ -169,7 +172,7 @@ namespace GameServer.Room
             }
         }
 
-        private void ChangeBattleRoomState(ROOM_STATE state)
+        public void ChangeBattleRoomState(ROOM_STATE state)
         {
             lock(StateLock)
             {
@@ -200,8 +203,10 @@ namespace GameServer.Room
         {
             lock(state)
             {
-                m_TimePast += 1000 / 60;
-                m_GameTimeRemain = 60 - ((int)m_TimePast / 1000);
+                if (m_Time == null)
+                    m_Time = new Time();
+
+                m_Time.Update();
 
                 // 시간이 종료가 되거나 누군가 3승을 먼저 할 경우 
                 if (m_GameTimeRemain < 0 || m_Player1KillCount == 3 || m_Player2KillCount == 3)
@@ -210,11 +215,11 @@ namespace GameServer.Room
                     return;
                 }
 
-                BattleRoomState.Update();
+                BattleRoomState.Update(m_Time.DeltaTime);
 
                 Common.Packet.SCSyncBattleData syncBattleData = new Common.Packet.SCSyncBattleData();
                 syncBattleData.m_Frame = m_Frame;
-                syncBattleData.m_GameTimeRemain = m_GameTimeRemain;
+                syncBattleData.m_GameTimeRemain = (int)m_GameTimeRemain;
 
                 foreach (BattleMember member in m_BattleMembers.Values)
                 {

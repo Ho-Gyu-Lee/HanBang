@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="Battle\BattleManager.cs" />
     <Compile Include="Common\Util\Singleton.cs" />
+    <Compile Include="Common\Util\Time.cs" />
     <Compile Include="GameServer.cs" />
     <Compile Include="Common\Packet\PacketDatas.cs" />
     <Compile Include="Common\Packet\PacketReceiveManager.cs" />

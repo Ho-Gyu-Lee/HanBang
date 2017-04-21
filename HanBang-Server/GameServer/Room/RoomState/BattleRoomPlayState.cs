@@ -9,9 +9,9 @@ namespace GameServer.Room.RoomState
         {
         }
 
-        public override void Update()
+        public override void Update(double deltatime)
         {
-            m_BattleRoom.UpdateBattleManager();
+            m_BattleRoom.UpdateBattleManager(deltatime);
         }
     }
 }

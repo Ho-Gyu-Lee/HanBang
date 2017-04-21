@@ -76,7 +76,7 @@ namespace GameServer.Battle
             return false;
         }
 
-        public void UpdatePlayerTerrainMove(BattleMember member, BattleTerrainData terrainData)
+        public void UpdatePlayerTerrainMove(double deltatime, BattleMember member, BattleTerrainData terrainData)
         {
             if (member != null)
             {
@@ -84,7 +84,7 @@ namespace GameServer.Battle
                 PosData pos = new PosData(member.MemberPos);
 
                 // 미리 이동 시켜 본다.
-                PlayerNextPosData(member.MemberActionType, ref member.MemberLook, ref pos);
+                PlayerNextPosData((float)deltatime, member.MemberActionType, ref member.MemberLook, ref pos);
 
                 // 맵 충돌 체크를 한다. 
                 if (pos.m_X >= terrainData.m_MinSizeX && pos.m_X <= terrainData.m_MaxSizeX &&
@@ -108,7 +108,7 @@ namespace GameServer.Battle
             }
         }
 
-        public void UpdatePlayersCollision(BattleMember member1, BattleMember member2)
+        public void UpdatePlayersCollision(double deltatime, BattleMember member1, BattleMember member2)
         {
             if (member1 != null && member2 != null)
             {
@@ -119,75 +119,75 @@ namespace GameServer.Battle
                 {
                     if (member1.MemberActionType == ACTION_TYPE.NONE)
                     {
-                        PlayerPrevPosData(member2.MemberActionType, ref member2.MemberPos.m_X, ref member2.MemberPos.m_Y);
+                        PlayerPrevPosData((float)deltatime, member2.MemberActionType, ref member2.MemberPos.m_X, ref member2.MemberPos.m_Y);
                     }
                     else if (member2.MemberActionType == ACTION_TYPE.NONE)
                     {
-                        PlayerPrevPosData(member1.MemberActionType, ref member1.MemberPos.m_X, ref member1.MemberPos.m_Y);
+                        PlayerPrevPosData((float)deltatime, member1.MemberActionType, ref member1.MemberPos.m_X, ref member1.MemberPos.m_Y);
                     }
                     else
                     {
                         int result = m_BattleRandom.Next(0, 1);
                         if (result == 0)
-                            PlayerPrevPosData(member2.MemberActionType, ref member2.MemberPos.m_X, ref member2.MemberPos.m_Y);
+                            PlayerPrevPosData((float)deltatime, member2.MemberActionType, ref member2.MemberPos.m_X, ref member2.MemberPos.m_Y);
                         else
-                            PlayerPrevPosData(member1.MemberActionType, ref member1.MemberPos.m_X, ref member1.MemberPos.m_Y);
+                            PlayerPrevPosData((float)deltatime, member1.MemberActionType, ref member1.MemberPos.m_X, ref member1.MemberPos.m_Y);
                     }
                 }
             }
         }
 
-        private void PlayerNextPosData(ACTION_TYPE actionType, ref bool look, ref PosData pos)
+        private void PlayerNextPosData(float deltatime, ACTION_TYPE actionType, ref bool look, ref PosData pos)
         {
             switch (actionType)
             {
                 case ACTION_TYPE.LEFT:
                     {
                         look = true;
-                        pos.m_X -= PLAYER_SPEED;
+                        pos.m_X -= PLAYER_SPEED * deltatime;
                     }
                     break;
                 case ACTION_TYPE.RIGHT:
                     {
                         look = false;
-                        pos.m_X += PLAYER_SPEED;
+                        pos.m_X += PLAYER_SPEED * deltatime;
                     }
                     break;
                 case ACTION_TYPE.DOWN:
                     {
-                        pos.m_Y -= PLAYER_SPEED;
+                        pos.m_Y -= PLAYER_SPEED * deltatime;
                     }
                     break;
                 case ACTION_TYPE.UP:
                     {
-                        pos.m_Y += PLAYER_SPEED;
+                        pos.m_Y += PLAYER_SPEED * deltatime;
                     }
                     break;
             }
         }
 
-        private void PlayerPrevPosData(ACTION_TYPE actionType, ref float x, ref float y)
+        private void PlayerPrevPosData(float deltatime, ACTION_TYPE actionType, ref float x, ref float y)
         {
             switch (actionType)
             {
                 case ACTION_TYPE.LEFT:
                     {
-                        x += PLAYER_SPEED;
+                        x += PLAYER_SPEED * deltatime;
                     }
                     break;
                 case ACTION_TYPE.RIGHT:
                     {
-                        x -= PLAYER_SPEED;
+                        x -= PLAYER_SPEED * deltatime;
                     }
                     break;
                 case ACTION_TYPE.DOWN:
                     {
-                        y += PLAYER_SPEED;
+                        y += PLAYER_SPEED * deltatime;
                     }
                     break;
                 case ACTION_TYPE.UP:
                     {
-                        y -= PLAYER_SPEED;
+                        y -= PLAYER_SPEED * deltatime;
                     }
                     break;
             }
