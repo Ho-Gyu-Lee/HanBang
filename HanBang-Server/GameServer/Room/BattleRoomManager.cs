@@ -31,13 +31,13 @@ namespace GameServer.Room
             return battleRoom;
         }
 
-        public void MatchBattleRoom(GameSession gameUserSession, ref int roomIndex, ref PLAYER_INDEX playerIndex, ref BattleMapData battleMapData)
+        public void MatchBattleRoom(GameSession gameUserSession, ref int roomIndex, ref PLAYER_INDEX playerIndex, ref BattleTerrainData battleTerrainData)
         {
             BattleRoom battleRoom = m_BattleRooms.Where(rooms => rooms.Value.MemberCount == 1).FirstOrDefault().Value;
 
             if (battleRoom != null)
             {
-                battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex, out battleMapData);
+                battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex, out battleTerrainData);
                 return;
             }
 
@@ -53,14 +53,14 @@ namespace GameServer.Room
                 return;
             }
 
-            battleRoom = new BattleRoom(roomIndex);
+            battleRoom = new BattleRoom(roomIndex, 0);
             if (!m_BattleRooms.TryAdd(roomIndex, battleRoom))
             {
                 Console.WriteLine("Failed Create Battle Room");
                 return;
             }
 
-            battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex, out battleMapData);
+            battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex, out battleTerrainData);
         }
 
         public void LeaveBattleRoom(int roomIndex, PLAYER_INDEX playerIndex)

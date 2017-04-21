@@ -11,21 +11,9 @@ namespace GameServer.Battle
         private const float PLAYER_COLLISION_BOX_X = 1.3F;
         private const float PLAYER_COLLISION_BOX_Y = 1.3F;
 
-        public BattleMapData BattleMapData { get; private set; }
+        private const float OBSTACLE_COLLISION_BOX = 1.3F;
 
         private Random m_BattleRandom = new Random(Guid.NewGuid().GetHashCode());
-
-        public BattleManager()
-        {
-            // 임시 맵 정보를 셋팅한다. 추후 파일을 읽어서 셋팅 할 거임
-            BattleMapData = new BattleMapData();
-
-            BattleMapData.m_MinMapSizeX = -12.80F;
-            BattleMapData.m_MaxMapSizeX = 11.52F;
-
-            BattleMapData.m_MinMapSizeY = -11.52F;
-            BattleMapData.m_MaxMapSizeY = 12.8F;
-        }
 
         public PLAYER_INDEX UpdateGameResult(BattleMember member1, BattleMember member2)
         {
@@ -88,7 +76,7 @@ namespace GameServer.Battle
             return false;
         }
 
-        public void UpdatePlayerMapMove(BattleMember member)
+        public void UpdatePlayerTerrainMove(BattleMember member, BattleTerrainData terrainData)
         {
             if (member != null)
             {
@@ -99,9 +87,21 @@ namespace GameServer.Battle
                 PlayerNextPosData(member.MemberActionType, ref member.MemberLook, ref pos);
 
                 // 맵 충돌 체크를 한다. 
-                if (pos.m_X >= BattleMapData.m_MinMapSizeX && pos.m_X <= BattleMapData.m_MaxMapSizeX &&
-                    pos.m_Y <= BattleMapData.m_MaxMapSizeY - 1.5F && pos.m_Y >= BattleMapData.m_MinMapSizeY)
+                if (pos.m_X >= terrainData.m_MinSizeX && pos.m_X <= terrainData.m_MaxSizeX &&
+                    pos.m_Y <= terrainData.m_MaxSizeY - 1.5F && pos.m_Y >= terrainData.m_MinSizeY)
                 {
+                    // 장애물 체크도 한다.
+                    foreach (ObstacleData data in terrainData.m_ObstacleDatas)
+                    {
+                        if (data.m_Pos.m_X - OBSTACLE_COLLISION_BOX <= pos.m_X &&
+                            data.m_Pos.m_X + OBSTACLE_COLLISION_BOX >= pos.m_X &&
+                            data.m_Pos.m_Y - 1.5F <= pos.m_Y &&
+                            data.m_Pos.m_Y + 0.5F >= pos.m_Y)
+                        {
+                            return;
+                        }
+                    }
+
                     member.MemberPos.m_X = pos.m_X;
                     member.MemberPos.m_Y = pos.m_Y;
                 }

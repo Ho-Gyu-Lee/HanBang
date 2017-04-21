@@ -63,25 +63,28 @@ namespace GameServer.Common.Packet
     public class ObstacleData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
+        public int m_Index = 0;
+
+        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
         public PosData m_Pos;
     }
 
-    public class BattleMapData
+    public class BattleTerrainData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
-        public int m_MapIndex = 0;
+        public int m_Index = 0;
 
         [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
-        public float m_MinMapSizeX = 0.0F;
+        public float m_MinSizeX = 0.0F;
 
         [MessagePackMember(2, NilImplication = NilImplication.MemberDefault)]
-        public float m_MaxMapSizeX = 0.0F;
+        public float m_MaxSizeX = 0.0F;
 
         [MessagePackMember(3, NilImplication = NilImplication.MemberDefault)]
-        public float m_MinMapSizeY = 0.0F;
+        public float m_MinSizeY = 0.0F;
 
         [MessagePackMember(4, NilImplication = NilImplication.MemberDefault)]
-        public float m_MaxMapSizeY = 0.0F;
+        public float m_MaxSizeY = 0.0F;
 
         [MessagePackMember(5, NilImplication = NilImplication.MemberDefault)]
         public List<ObstacleData> m_ObstacleDatas = new List<ObstacleData>();
@@ -129,7 +132,7 @@ namespace GameServer.Common.Packet
         public int m_RoomIndex = -1;
 
         [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
-        public BattleMapData m_BattleMapData;
+        public BattleTerrainData m_BattleTerrainData;
     }
 
     public class SCBattleMemberData

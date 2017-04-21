@@ -78,7 +78,7 @@ namespace GameServer
         private void OnMatchBattleRoom()
         {
             SCMatchBattleRoomData data = new SCMatchBattleRoomData();
-            Room.BattleRoomManager.Instance.MatchBattleRoom(this, ref m_RoomIndex, ref m_BattlePlayerIndex, ref data.m_BattleMapData);
+            Room.BattleRoomManager.Instance.MatchBattleRoom(this, ref m_RoomIndex, ref m_BattlePlayerIndex, ref data.m_BattleTerrainData);
 
             data.m_RoomIndex = m_RoomIndex;
             SendManager.SendSCMatchBattleRoomData(data);

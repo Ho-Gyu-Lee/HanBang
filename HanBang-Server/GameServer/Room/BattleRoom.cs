@@ -1,5 +1,6 @@
 ﻿using GameServer.Battle;
 using GameServer.Common.Packet;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -15,9 +16,9 @@ namespace GameServer.Room
 
         private ConcurrentDictionary<PLAYER_INDEX, BattleMember> m_BattleMembers = new ConcurrentDictionary<PLAYER_INDEX, BattleMember>();
 
-        private ConcurrentDictionary<PLAYER_INDEX, ConcurrentQueue<CSBattleMemberActionData>> m_BattleMemberActionDatas = new ConcurrentDictionary<PLAYER_INDEX, ConcurrentQueue<CSBattleMemberActionData>>();
-
         private BattleManager m_BattleManager = new BattleManager();
+
+        public BattleTerrainData BattleTerrainData { get; private set; }
 
         private volatile int m_Frame = 0;
 
@@ -27,14 +28,6 @@ namespace GameServer.Room
 
         private object m_GameStartFlagLock = new object();
 
-        private bool m_IsStartGame = false;
-
-        private bool IsStartGame
-        {
-            get { lock (m_GameStartFlagLock) return m_IsStartGame; }
-            set { lock (m_GameStartFlagLock) m_IsStartGame = value; }
-        }
-
         public int m_RoomIndex = -1;
 
         private bool m_IsReadyPlayer1 = false;
@@ -42,18 +35,73 @@ namespace GameServer.Room
 
         public int MemberCount { get { return m_BattleMembers.Count; } }
 
-        public BattleRoom(int roomIndex)
+        public BattleRoom(int roomIndex, int mapIndex)
         {
             m_RoomIndex = roomIndex;
-            m_BattleRoomTimer = new System.Threading.Timer(Update, new object(), 0, 1000 / 60);
+
+            // 임시 맵 정보를 셋팅한다. 추후 파일을 읽어서 셋팅 할 거임
+            BattleTerrainData = new BattleTerrainData();
+
+            BattleTerrainData.m_MinSizeX = -12.80F;
+            BattleTerrainData.m_MaxSizeX = 11.52F;
+
+            BattleTerrainData.m_MinSizeY = -11.52F;
+            BattleTerrainData.m_MaxSizeY = 12.8F;
+
+            Random random = new Random();
+            ObstacleData obstacleData1 = new ObstacleData();
+            obstacleData1.m_Pos = new PosData();
+            obstacleData1.m_Pos.m_X = random.Next(-11, 11);
+            obstacleData1.m_Pos.m_Y = random.Next(-11, 11);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData1);
+
+            ObstacleData obstacleData2 = new ObstacleData();
+            obstacleData2.m_Pos = new PosData();
+            obstacleData2.m_Pos.m_X = random.Next(-11, 11);
+            obstacleData2.m_Pos.m_Y = random.Next(-11, 11);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData2);
+
+            ObstacleData obstacleData3 = new ObstacleData();
+            obstacleData3.m_Pos = new PosData();
+            obstacleData3.m_Pos.m_X = random.Next(-11, 11);
+            obstacleData3.m_Pos.m_Y = random.Next(-11, 11);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData3);
+
+            ObstacleData obstacleData4 = new ObstacleData();
+            obstacleData4.m_Pos = new PosData();
+            obstacleData4.m_Pos.m_X = random.Next(-11, 11);
+            obstacleData4.m_Pos.m_Y = random.Next(-11, 11);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData4);
+
+            ObstacleData obstacleData5 = new ObstacleData();
+            obstacleData5.m_Pos = new PosData();
+            obstacleData5.m_Pos.m_X = random.Next(-11, 11);
+            obstacleData5.m_Pos.m_Y = random.Next(-11, 11);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData5);
+
+            ObstacleData obstacleData6 = new ObstacleData();
+            obstacleData6.m_Pos = new PosData();
+            obstacleData6.m_Pos.m_X = random.Next(-11, 11);
+            obstacleData6.m_Pos.m_Y = random.Next(-11, 11);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData6);
+
+            ObstacleData obstacleData7 = new ObstacleData();
+            obstacleData7.m_Pos = new PosData();
+            obstacleData7.m_Pos.m_X = random.Next(-11, 11);
+            obstacleData7.m_Pos.m_Y = random.Next(-11, 11);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData7);
+
+            ObstacleData obstacleData8 = new ObstacleData();
+            obstacleData8.m_Pos = new PosData();
+            obstacleData8.m_Pos.m_X = random.Next(-11, 11);
+            obstacleData8.m_Pos.m_Y = random.Next(-11, 11);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData8);
         }
 
         public void OnOnBattleMemberActionData(PLAYER_INDEX playerIndex, CSBattleMemberActionData data)
         {
-            if(m_BattleMemberActionDatas.ContainsKey(playerIndex))
-            {
-                m_BattleMemberActionDatas[playerIndex].Enqueue(data);
-            }
+            if (m_BattleMembers.ContainsKey(playerIndex))
+                m_BattleMembers[playerIndex].MemberActionType = data.m_ActionType;
         }
 
         public void OnBattleMemberData()
@@ -78,32 +126,27 @@ namespace GameServer.Room
             {
                 member.Initialize();
             }
-            IsStartGame = true;
         }
 
         public void Update(object state)
         {
             lock(state)
             {
-                foreach(ConcurrentQueue<CSBattleMemberActionData> dataQueue in m_BattleMemberActionDatas.Values)
+                m_TimePast += 1000 / 60;
+                m_GameTimeRemain = 60 - ((int)m_TimePast / 1000);
+
+                // 시간이 종료 되면 게임 결과 보내기
+                if (m_GameTimeRemain < 0)
                 {
-                    if (dataQueue.Count > 0)
+                    return;
+                }
+
+                // 다음 틱에 누군가 죽어 있다면 대기 모드 후 다시 캐릭터 살림
+                foreach (BattleMember member in m_BattleMembers.Values)
+                {
+                    if (member.MemberActionType == ACTION_TYPE.DIE)
                     {
-                        while (dataQueue.Count != 0)
-                        {
-                            CSBattleMemberActionData data = null;
-                            if(dataQueue.TryDequeue(out data))
-                            {
-                                if(data.m_Frame == m_Frame)
-                                {
-                                    if(m_BattleMembers.ContainsKey(data.m_PlayerIndex))
-                                    {
-                                        m_BattleMembers[data.m_PlayerIndex].MemberActionType = data.m_ActionType;
-                                        continue;
-                                    }
-                                }
-                            }
-                        }
+                        return;
                     }
                 }
 
@@ -119,7 +162,7 @@ namespace GameServer.Room
                     // 이동 처리
                     foreach (BattleMember member in m_BattleMembers.Values)
                     {
-                        m_BattleManager.UpdatePlayerMapMove(member);
+                        m_BattleManager.UpdatePlayerTerrainMove(member, BattleTerrainData);
                     }
                 }
                 else
@@ -129,15 +172,6 @@ namespace GameServer.Room
                     {
                         m_BattleMembers[loserPlayer].MemberActionType = ACTION_TYPE.DIE;
                     }
-                }
-
-                m_TimePast += 1000 / 60;
-                m_GameTimeRemain = 60 - ((int)m_TimePast / 1000);
-
-                // 시간이 종료 되어 무승부 처리
-                if (m_GameTimeRemain < 0)
-                {
-                    return;
                 }
 
                 Common.Packet.SCSyncBattleData syncBattleData = new Common.Packet.SCSyncBattleData();
@@ -158,15 +192,14 @@ namespace GameServer.Room
             }
         }
 
-        public void JoinBattleRoom(GameSession session, out int roomIndex, out PLAYER_INDEX playerIndex, out BattleMapData battleMapData)
+        public void JoinBattleRoom(GameSession session, out int roomIndex, out PLAYER_INDEX playerIndex, out BattleTerrainData battleTerrainData)
         {
-            roomIndex     = m_RoomIndex;
-            playerIndex   = (PLAYER_INDEX)MemberCount;
-            battleMapData = m_BattleManager.BattleMapData;
+            roomIndex         = m_RoomIndex;
+            playerIndex       = (PLAYER_INDEX)MemberCount;
+            battleTerrainData = BattleTerrainData;
 
             BattleMember member = new BattleMember(playerIndex, session);
             m_BattleMembers.TryAdd(member.PlayerIndex, member);
-            m_BattleMemberActionDatas.TryAdd(member.PlayerIndex, new ConcurrentQueue<CSBattleMemberActionData>());
         }
 
         public void ReadyBattle(PLAYER_INDEX playerIndex)
@@ -182,9 +215,7 @@ namespace GameServer.Room
             }
 
             if (m_IsReadyPlayer1 && m_IsReadyPlayer2)
-            {
-                IsStartGame = true;
-            }
+                m_BattleRoomTimer = new System.Threading.Timer(Update, new object(), 0, 1000 / 60);
         }
 
         public bool LeaveBattleRoom(PLAYER_INDEX playerIndex)

@@ -105,12 +105,12 @@ public class Player : MonoBehaviour
         }
 
         // 카메라 충돌 체크
-        if(GameManager.Instance.BattleMapData != null)
+        if(TerrainManager.Instance.BattleTerrainData != null)
         {
-            float minMapSizeX = GameManager.Instance.BattleMapData.m_MinMapSizeX;
-            float maxMapSizeX = GameManager.Instance.BattleMapData.m_MaxMapSizeX;
-            float minMapSizeY = GameManager.Instance.BattleMapData.m_MinMapSizeY;
-            float maxMapSizeY = GameManager.Instance.BattleMapData.m_MaxMapSizeY;
+            float minMapSizeX = TerrainManager.Instance.BattleTerrainData.m_MinSizeX;
+            float maxMapSizeX = TerrainManager.Instance.BattleTerrainData.m_MaxSizeX;
+            float minMapSizeY = TerrainManager.Instance.BattleTerrainData.m_MinSizeY;
+            float maxMapSizeY = TerrainManager.Instance.BattleTerrainData.m_MaxSizeY;
 
             Vector3 playerInfo = transform.transform.position;
             Vector3 cameraPostion = m_Camera.transform.position;

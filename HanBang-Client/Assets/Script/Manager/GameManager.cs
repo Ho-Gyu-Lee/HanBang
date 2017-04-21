@@ -42,8 +42,6 @@ public class GameManager : MonoBehaviour
 
     public PLAYER_INDEX EnumyPlayerIndex { get; private set; }
 
-    public BattleMapData BattleMapData { get; private set; }
-
     public GameObject Player(PLAYER_INDEX playerIndex)
     {
         if (PlayerIndex == playerIndex)
@@ -83,10 +81,10 @@ public class GameManager : MonoBehaviour
 
     }
 
-    public void InitializeBattleRoom(int roomIndex, BattleMapData battleMapData)
+    public void InitializeBattleRoom(int roomIndex, BattleTerrainData battleTerrainData)
     {
         RoomIndex = roomIndex;
-        BattleMapData = battleMapData;
+        TerrainManager.Instance.OnBattleTerrainData(battleTerrainData);
     }
 
     public void InitializePlayer()

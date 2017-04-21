@@ -111,7 +111,7 @@ public class ClientNetworkManager : MonoBehaviour
 
     private void OnSCMatchBattleRoomData(SCMatchBattleRoomData data)
     {
-        GameManager.Instance.InitializeBattleRoom(data.m_RoomIndex, data.m_BattleMapData);
+        GameManager.Instance.InitializeBattleRoom(data.m_RoomIndex, data.m_BattleTerrainData);
 
         SendManager.SendCSBattleMemberData();
     }
