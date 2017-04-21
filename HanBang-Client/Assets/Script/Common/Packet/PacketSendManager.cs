@@ -86,18 +86,6 @@ namespace GameServer.Common.Packet
             SendHandler((int)PACKET_TYPE.CS_READY_BATTLE, buffer, buffer.Length);
         }
 
-        public void SendSCStartBattle()
-        {
-            byte[] buffer = new byte[0];
-            SendHandler((int)PACKET_TYPE.SC_START_BATTLE, buffer, buffer.Length);
-        }
-
-        public void SendSCEndBattle()
-        {
-            byte[] buffer = new byte[0];
-            SendHandler((int)PACKET_TYPE.SC_END_BATTLE, buffer, buffer.Length);
-        }
-
         public void SendCSLeaveBattleRoom()
         {
             byte[] buffer = new byte[0];

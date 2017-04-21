@@ -17,7 +17,7 @@ namespace GameServer.Battle
 
         public BattleMemberData BattleMemberData { get { return m_BattleMemberData; } }
 
-        public int PlayerIndex { get { return m_BattleMemberData.m_PlayerIndex; } }
+        public PLAYER_INDEX PlayerIndex { get { return m_BattleMemberData.m_PlayerIndex; } }
 
         public GameSession GameSession { get; private set; }
 
@@ -25,24 +25,13 @@ namespace GameServer.Battle
 
         public bool MemberLook = false;
 
-        private object m_MemberActionTypeLock = new object();
-
         public ACTION_TYPE MemberActionType
         {
-            get
-            {
-                lock(m_MemberActionTypeLock)
-                    return m_BattleMemberData.m_ActionType;
-            }
-
-            set
-            {
-                lock(m_MemberActionTypeLock)
-                    m_BattleMemberData.m_ActionType = value;
-            }
+            get { return m_BattleMemberData.m_ActionType; }
+            set { m_BattleMemberData.m_ActionType = value; }
         }
 
-        public BattleMember(int playerIndex, GameSession session)
+        public BattleMember(PLAYER_INDEX playerIndex, GameSession session)
         {
             GameSession = session;
 
@@ -55,14 +44,14 @@ namespace GameServer.Battle
         {
             switch (m_BattleMemberData.m_PlayerIndex)
             {
-                case 0:
+                case PLAYER_INDEX.PLAYER_1:
                     {
                         MemberLook = false;
                         m_BattleMemberData.m_Pos = new PosData(-3.0F, 0.0F);
                         MemberActionType = ACTION_TYPE.NONE;
                     }
                     break;
-                case 1:
+                case PLAYER_INDEX.PLAYER_2:
                     {
                         MemberLook = true;
                         m_BattleMemberData.m_Pos = new PosData(3.0F, 0.0F);

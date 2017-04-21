@@ -9,12 +9,12 @@ public class Enemy : MonoBehaviour
 
     private bool m_IsPlayerRotation = false;
 
-    public void Initialize(int playerIndex)
+    public void Initialize(PLAYER_INDEX playerIndex)
     {
         if (m_EnemyAnimator != null)
             m_EnemyAnimator.SetInteger("ActionControll", 0);
 
-        if (playerIndex == 1)
+        if (playerIndex == PLAYER_INDEX.PLAYER_2)
         {
             if(m_IsPlayerRotation == false)
             {

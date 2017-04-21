@@ -11,25 +11,9 @@ namespace GameServer.Battle
         private const float PLAYER_COLLISION_BOX_X = 1.3F;
         private const float PLAYER_COLLISION_BOX_Y = 1.3F;
 
-        private BattleMember m_Member1 = null;
-        private BattleMember m_Member2 = null;
-
         public BattleMapData BattleMapData { get; private set; }
 
         private Random m_BattleRandom = new Random(Guid.NewGuid().GetHashCode());
-
-        public void SetBattleMember(int playerIndex, BattleMember member)
-        {
-            switch(playerIndex)
-            {
-                case 0:
-                    m_Member1 = member;
-                    break;
-                case 1:
-                    m_Member2 = member;
-                    break;
-            }
-        }
 
         public BattleManager()
         {
@@ -43,48 +27,38 @@ namespace GameServer.Battle
             BattleMapData.m_MaxMapSizeY = 12.8F;
         }
 
-        public void Update()
+        public PLAYER_INDEX UpdateGameResult(BattleMember member1, BattleMember member2)
         {
-            // 매 프레임 마다 위치를 이동 시킨다.
-            UpdatePlayerMapMove(m_Member1);
-            UpdatePlayerMapMove(m_Member2);
-
-            // 캐릭터 충돌 체크
-            UpdatePlayersCollision(m_Member1, m_Member2);
-        }
-
-        public PLAYER_INDEX UpdateGameResult()
-        {
-            if (m_Member1 != null && m_Member2 != null)
+            if (member1 != null && member2 != null)
             {
-                if (m_Member1.MemberActionType == ACTION_TYPE.ATTACK)
+                if (member1.MemberActionType == ACTION_TYPE.ATTACK)
                 {
-                    if (ExaminePlayerDamage(m_Member1.MemberLook, m_Member1.MemberPos, m_Member2.MemberPos))
-                        return PLAYER_INDEX.PLAYER_1;
-                }
-                else if (m_Member2.MemberActionType == ACTION_TYPE.ATTACK)
-                {
-                    if (ExaminePlayerDamage(m_Member2.MemberLook, m_Member2.MemberPos, m_Member1.MemberPos))
+                    if (ExaminePlayerDamage(member1.MemberLook, member1.MemberPos, member2.MemberPos))
                         return PLAYER_INDEX.PLAYER_2;
                 }
-                else if (m_Member1.MemberActionType == ACTION_TYPE.ATTACK && m_Member2.MemberActionType == ACTION_TYPE.ATTACK)
+                else if (member2.MemberActionType == ACTION_TYPE.ATTACK)
                 {
-                    bool member1Damage = ExaminePlayerDamage(m_Member1.MemberLook, m_Member1.MemberPos, m_Member2.MemberPos);
-                    bool member2Damage = ExaminePlayerDamage(m_Member2.MemberLook, m_Member2.MemberPos, m_Member1.MemberPos);
+                    if (ExaminePlayerDamage(member2.MemberLook, member2.MemberPos, member1.MemberPos))
+                        return PLAYER_INDEX.PLAYER_1;
+                }
+                else if (member1.MemberActionType == ACTION_TYPE.ATTACK && member2.MemberActionType == ACTION_TYPE.ATTACK)
+                {
+                    bool member1Damage = ExaminePlayerDamage(member1.MemberLook, member1.MemberPos, member2.MemberPos);
+                    bool member2Damage = ExaminePlayerDamage(member2.MemberLook, member2.MemberPos, member1.MemberPos);
 
                     if (member1Damage && member2Damage)
                     {
                         // 둘다 데미지를 받았다면
                         int result = m_BattleRandom.Next(0, 1);
                         if (result == 0)
-                            return PLAYER_INDEX.PLAYER_1;
-                        else
                             return PLAYER_INDEX.PLAYER_2;
+                        else
+                            return PLAYER_INDEX.PLAYER_1;
                     }
                     else if (member1Damage)
-                        return PLAYER_INDEX.PLAYER_2;
-                    else if (member2Damage)
                         return PLAYER_INDEX.PLAYER_1;
+                    else if (member2Damage)
+                        return PLAYER_INDEX.PLAYER_2;
                 }
             }
 
@@ -93,27 +67,28 @@ namespace GameServer.Battle
 
         private bool ExaminePlayerDamage(bool look, PosData attack, PosData hit)
         {
-            bool isHitPlayerLook = false;
+            PosData attackCollisionBox = null;
             if (look)
             {
-                if (attack.m_X > hit.m_X) isHitPlayerLook = true;
+                attackCollisionBox = new PosData(attack.m_X - (PLAYER_COLLISION_BOX_X * 2), attack.m_Y);
             }
             else
             {
-                if (attack.m_X < hit.m_X) isHitPlayerLook = true;
+                attackCollisionBox = new PosData(attack.m_X + (PLAYER_COLLISION_BOX_X * 2), attack.m_Y);
             }
 
-            if (isHitPlayerLook)
+            if (attackCollisionBox.m_X - PLAYER_COLLISION_BOX_X <= hit.m_X &&
+                attackCollisionBox.m_X + PLAYER_COLLISION_BOX_X >= hit.m_X &&
+                attackCollisionBox.m_Y - PLAYER_COLLISION_BOX_Y <= hit.m_Y &&
+                attackCollisionBox.m_Y + PLAYER_COLLISION_BOX_Y >= hit.m_Y)
             {
-                double distance = Math.Sqrt(Math.Pow(attack.m_X - hit.m_X, 2) + Math.Pow(attack.m_Y - hit.m_Y, 2));
-                if (distance < 1.9F)
-                    return true;
+                return true;
             }
 
             return false;
         }
 
-        private void UpdatePlayerMapMove(BattleMember member)
+        public void UpdatePlayerMapMove(BattleMember member)
         {
             if (member != null)
             {
@@ -133,7 +108,7 @@ namespace GameServer.Battle
             }
         }
 
-        private void UpdatePlayersCollision(BattleMember member1, BattleMember member2)
+        public void UpdatePlayersCollision(BattleMember member1, BattleMember member2)
         {
             if (member1 != null && member2 != null)
             {

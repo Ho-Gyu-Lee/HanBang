@@ -14,8 +14,6 @@ namespace GameServer.Common.Packet
         CS_BATTLE_MEMBER_DATA,
         SC_BATTLE_MEMBER_DATA,
         CS_READY_BATTLE,
-        SC_START_BATTLE,
-        SC_END_BATTLE,
         CS_LEAVE_BATTLE_ROOM,
     }
 
@@ -92,7 +90,7 @@ namespace GameServer.Common.Packet
     public class BattleMemberData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
-        public int m_PlayerIndex = -1;
+        public PLAYER_INDEX m_PlayerIndex = PLAYER_INDEX.NONE;
 
         [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
         public ACTION_TYPE m_ActionType = ACTION_TYPE.NONE;
@@ -104,15 +102,24 @@ namespace GameServer.Common.Packet
     public class CSBattleMemberActionData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
+        public PLAYER_INDEX m_PlayerIndex = PLAYER_INDEX.NONE;
+
+        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
+        public int m_Frame = 0;
+
+        [MessagePackMember(2, NilImplication = NilImplication.MemberDefault)]
         public ACTION_TYPE m_ActionType = ACTION_TYPE.NONE;
     }
 
     public class SCSyncBattleData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
-        public int m_GameTimeRemain = 0;
+        public int m_Frame = 0;
 
         [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
+        public int m_GameTimeRemain = 0;
+
+        [MessagePackMember(2, NilImplication = NilImplication.MemberDefault)]
         public Dictionary<int, BattleMemberData> m_BattleMemberDatas = new Dictionary<int, BattleMemberData>();
     }
 
@@ -128,7 +135,7 @@ namespace GameServer.Common.Packet
     public class SCBattleMemberData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
-        public int m_MyPlayerIndex = -1;
+        public PLAYER_INDEX m_MyPlayerIndex = PLAYER_INDEX.NONE;
 
         [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
         public Dictionary<int, BattleMemberData> m_BattleMemberDatas = new Dictionary<int, BattleMemberData>();

@@ -58,8 +58,6 @@ public class ClientNetworkManager : MonoBehaviour
         m_PacketReceiveManager.SCMatchBattleRoomData += OnSCMatchBattleRoomData;
         m_PacketReceiveManager.SCBattleMemberData    += OnSCBattleMemberData;
         m_PacketReceiveManager.SCSyncBattleData      += OnSCSyncBattleData;
-
-        m_PacketReceiveManager.SCStartBattle += OnSCStartBattle;
     }
 	
 	// Update is called once per frame

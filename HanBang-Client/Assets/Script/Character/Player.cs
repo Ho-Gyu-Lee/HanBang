@@ -15,7 +15,7 @@ public class Player : MonoBehaviour
 
     private CSBattleMemberActionData m_BattleMemberActionData = new CSBattleMemberActionData();
 
-    public void Initialize(int playerIndex)
+    public void Initialize(PLAYER_INDEX playerIndex)
     {
         m_IsPlayerDie = false;
         m_IsAttackAnimation = false;
@@ -25,7 +25,7 @@ public class Player : MonoBehaviour
         if(m_PlayerAnimator != null)
             m_PlayerAnimator.SetInteger("ActionControll", 0);
 
-        if (playerIndex == 1)
+        if (playerIndex == PLAYER_INDEX.PLAYER_2)
         {
             if (m_IsPlayerRotation == false)
             {

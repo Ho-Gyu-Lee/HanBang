@@ -28,12 +28,6 @@ namespace GameServer.Common.Packet
         public delegate void OnCSReadyBattleDelegate();
         public OnCSReadyBattleDelegate CSReadyBattle;
 
-        public delegate void OnSCStartBattleDelegate();
-        public OnSCStartBattleDelegate SCStartBattle;
-
-        public delegate void OnSCEndBattleDelegate();
-        public OnSCEndBattleDelegate SCEndBattle;
-
         public delegate void OnCSLeaveBattleRoomDelegate();
         public OnCSLeaveBattleRoomDelegate CSLeaveBattleRoom;
 
@@ -88,18 +82,6 @@ namespace GameServer.Common.Packet
                 case PACKET_TYPE.CS_READY_BATTLE:
                     {
                         CSReadyBattle();
-                    }
-                    break;
-
-                case PACKET_TYPE.SC_START_BATTLE:
-                    {
-                        SCStartBattle();
-                    }
-                    break;
-
-                case PACKET_TYPE.SC_END_BATTLE:
-                    {
-                        SCEndBattle();
                     }
                     break;
 

@@ -25,8 +25,6 @@ public class GameManager : MonoBehaviour
 
     private Dictionary<string, GameObject> m_Characters = new Dictionary<string, GameObject>();
 
-    private Queue<CSBattleMemberActionData> m_Player1ActionDataQueue = new Queue<CSBattleMemberActionData>();
-
     private GameObject m_CharacterGroup = null;
 
     private GameObject m_Player1 = null;
@@ -36,15 +34,17 @@ public class GameManager : MonoBehaviour
 
     private List<string> m_CharacterResourcesName = new List<string>();
 
+    private int m_Frame = 0;
+
     public int RoomIndex { get; private set; }
 
-    public int PlayerIndex { get; private set; }
+    public PLAYER_INDEX PlayerIndex { get; private set; }
 
-    public int EnumyPlayerIndex { get; private set; }
+    public PLAYER_INDEX EnumyPlayerIndex { get; private set; }
 
     public BattleMapData BattleMapData { get; private set; }
 
-    public GameObject Player(int playerIndex)
+    public GameObject Player(PLAYER_INDEX playerIndex)
     {
         if (PlayerIndex == playerIndex)
             return m_Player1;
@@ -98,13 +98,13 @@ public class GameManager : MonoBehaviour
         enemyscript.Initialize(EnumyPlayerIndex);
     }
 
-    public void OnPlayerSpawn(int playerIndex, PosData pos)
+    public void OnPlayerSpawn(PLAYER_INDEX playerIndex, PosData pos)
     {
         if (m_Player1 != null) return;
 
         PlayerIndex = playerIndex;
 
-        m_Player1 = Instantiate(m_Characters[m_CharacterResourcesName[PlayerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
+        m_Player1 = Instantiate(m_Characters[m_CharacterResourcesName[(int)PlayerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
         m_Player1.transform.localScale = new Vector3(0.23F, 0.23F, 1);
         m_Player1.transform.parent = m_CharacterGroup.transform;
         m_Player1.AddComponent<Player>();
@@ -113,13 +113,13 @@ public class GameManager : MonoBehaviour
         script.Initialize(PlayerIndex);
     }
 
-    public void OnEnemySpawn(int playerIndex, PosData pos)
+    public void OnEnemySpawn(PLAYER_INDEX playerIndex, PosData pos)
     {
         if (m_Player2 != null) return;
 
         EnumyPlayerIndex = playerIndex;
 
-        m_Player2 = Instantiate(m_Characters[m_CharacterResourcesName[EnumyPlayerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
+        m_Player2 = Instantiate(m_Characters[m_CharacterResourcesName[(int)EnumyPlayerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
         m_Player2.transform.localScale = new Vector3(0.23F, 0.23F, 1);
         m_Player2.transform.parent = m_CharacterGroup.transform;
         m_Player2.AddComponent<Enemy>();
@@ -133,6 +133,7 @@ public class GameManager : MonoBehaviour
 
     public void OnSyncBattle(SCSyncBattleData data)
     {
+        m_Frame = data.m_Frame;
         m_BattleTimeText.text = "남은 시간 : " + data.m_GameTimeRemain.ToString();
 
         foreach (BattleMemberData member in data.m_BattleMemberDatas.Values)
@@ -153,13 +154,11 @@ public class GameManager : MonoBehaviour
                 player.transform.position = new Vector3(member.m_Pos.m_X, member.m_Pos.m_Y, 0);
             }
         }
-
-        if(m_Player1ActionDataQueue.Count > 0)
-            ClientNetworkManager.Instance.SendManager.SendCSBattleMemberActionData(m_Player1ActionDataQueue.Dequeue());
     }
 
     public void SendPlayerActionData(CSBattleMemberActionData data)
     {
-        m_Player1ActionDataQueue.Enqueue(data);
+        data.m_Frame = m_Frame + 1;
+        ClientNetworkManager.Instance.SendManager.SendCSBattleMemberActionData(data);
     }
 }

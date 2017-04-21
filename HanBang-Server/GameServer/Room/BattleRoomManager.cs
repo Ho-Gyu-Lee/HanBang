@@ -31,7 +31,7 @@ namespace GameServer.Room
             return battleRoom;
         }
 
-        public void MatchBattleRoom(GameSession gameUserSession, ref int roomIndex, ref int playerIndex, ref BattleMapData battleMapData)
+        public void MatchBattleRoom(GameSession gameUserSession, ref int roomIndex, ref PLAYER_INDEX playerIndex, ref BattleMapData battleMapData)
         {
             BattleRoom battleRoom = m_BattleRooms.Where(rooms => rooms.Value.MemberCount == 1).FirstOrDefault().Value;
 
@@ -63,7 +63,7 @@ namespace GameServer.Room
             battleRoom.JoinBattleRoom(gameUserSession, out roomIndex, out playerIndex, out battleMapData);
         }
 
-        public void LeaveBattleRoom(int roomIndex, int playerIndex)
+        public void LeaveBattleRoom(int roomIndex, PLAYER_INDEX playerIndex)
         {
             if(m_BattleRooms.ContainsKey(roomIndex))
             {

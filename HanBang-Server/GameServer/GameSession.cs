@@ -14,7 +14,7 @@ namespace GameServer
 
         private int m_RoomIndex = -1;
 
-        private int m_BattlePlayerIndex = -1;
+        private PLAYER_INDEX m_BattlePlayerIndex = PLAYER_INDEX.PLAYER_1;
 
         public GameSession()
             : base()
@@ -71,7 +71,8 @@ namespace GameServer
                 return;
             }
 
-            battleRoom.SetBattleMemberActionData(m_BattlePlayerIndex, data.m_ActionType);
+            data.m_PlayerIndex = m_BattlePlayerIndex;
+            battleRoom.OnOnBattleMemberActionData(m_BattlePlayerIndex, data);
         }
 
         private void OnMatchBattleRoom()
@@ -109,7 +110,7 @@ namespace GameServer
 
         private void OnLeaveBattleRoom()
         {
-            if (m_RoomIndex > -1 && m_BattlePlayerIndex > -1)
+            if (m_RoomIndex > -1 && m_BattlePlayerIndex > PLAYER_INDEX.NONE)
             {
                 Room.BattleRoom battleRoom = Room.BattleRoomManager.Instance.GetBattleRoom(m_RoomIndex);
                 if (battleRoom != null)
@@ -118,7 +119,7 @@ namespace GameServer
                 }
 
                 m_RoomIndex = -1;
-                m_BattlePlayerIndex = -1;
+                m_BattlePlayerIndex = PLAYER_INDEX.NONE;
             }
         }
     }

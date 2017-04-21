@@ -1,5 +1,6 @@
 ﻿using GameServer.Battle;
 using GameServer.Common.Packet;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,9 +13,13 @@ namespace GameServer.Room
 
         private System.Threading.Timer m_BattleRoomTimer = null;
 
-        private ConcurrentDictionary<int, BattleMember> m_BattleMembers = new ConcurrentDictionary<int, BattleMember>();
+        private ConcurrentDictionary<PLAYER_INDEX, BattleMember> m_BattleMembers = new ConcurrentDictionary<PLAYER_INDEX, BattleMember>();
+
+        private ConcurrentDictionary<PLAYER_INDEX, ConcurrentQueue<CSBattleMemberActionData>> m_BattleMemberActionDatas = new ConcurrentDictionary<PLAYER_INDEX, ConcurrentQueue<CSBattleMemberActionData>>();
 
         private BattleManager m_BattleManager = new BattleManager();
+
+        private volatile int m_Frame = 0;
 
         private float m_TimePast = 0.0F;
 
@@ -43,12 +48,20 @@ namespace GameServer.Room
             m_BattleRoomTimer = new System.Threading.Timer(Update, new object(), 0, 1000 / 60);
         }
 
+        public void OnOnBattleMemberActionData(PLAYER_INDEX playerIndex, CSBattleMemberActionData data)
+        {
+            if(m_BattleMemberActionDatas.ContainsKey(playerIndex))
+            {
+                m_BattleMemberActionDatas[playerIndex].Enqueue(data);
+            }
+        }
+
         public void OnBattleMemberData()
         {
             SCBattleMemberData data = new SCBattleMemberData();
             foreach (BattleMember member in m_BattleMembers.Values)
             {
-                data.m_BattleMemberDatas.Add(member.PlayerIndex, member.BattleMemberData);
+                data.m_BattleMemberDatas.Add((int)member.PlayerIndex, member.BattleMemberData);
             }
 
             foreach (BattleMember member in m_BattleMembers.Values)
@@ -66,97 +79,104 @@ namespace GameServer.Room
                 member.Initialize();
             }
             IsStartGame = true;
-
-            foreach (BattleMember member in m_BattleMembers.Values)
-            {
-                member.GameSession.SendManager.SendSCStartBattle();
-            }
-        }
-
-        private void SendBroadcastEndBattle()
-        {
-            foreach (BattleMember member in m_BattleMembers.Values)
-            {
-                member.GameSession.SendManager.SendSCEndBattle();
-            }
         }
 
         public void Update(object state)
         {
             lock(state)
             {
-                if(IsStartGame)
+                foreach(ConcurrentQueue<CSBattleMemberActionData> dataQueue in m_BattleMemberActionDatas.Values)
                 {
-                    m_BattleManager.Update();
-
-                    PLAYER_INDEX winPlayer = m_BattleManager.UpdateGameResult();
-
-                    // 시간이 종료 되어 무승부 처리
-                    if (m_GameTimeRemain < 0)
+                    if (dataQueue.Count > 0)
                     {
-                        IsStartGame = false;
-
-                        // 2초 후에 게임 다시  시작
-                        var delay = Task.Delay(2000).ContinueWith(_ =>
+                        while (dataQueue.Count != 0)
                         {
-                            RestartBattle();
-                        });
-                    }
-
-                    m_TimePast += 1000 / 60;
-                    m_GameTimeRemain = 60 - ((int)m_TimePast / 1000);
-
-                    Common.Packet.SCSyncBattleData syncBattleData = new Common.Packet.SCSyncBattleData();
-                    syncBattleData.m_GameTimeRemain = m_GameTimeRemain;
-
-                    foreach (BattleMember member in m_BattleMembers.Values)
-                    {
-                        if (winPlayer != PLAYER_INDEX.NONE)
-                        {
-                            // 누군가 승리
-                            if (member.PlayerIndex != (int)winPlayer)
+                            CSBattleMemberActionData data = null;
+                            if(dataQueue.TryDequeue(out data))
                             {
-                                m_IsStartGame = false;
-
-                                member.BattleMemberData.m_ActionType = ACTION_TYPE.DIE;
-
-                                // 2초 후에 게임 다시  시작
-                                var delay = Task.Delay(2000).ContinueWith(_ =>
+                                if(data.m_Frame == m_Frame)
                                 {
-                                    RestartBattle();
-                                });
+                                    if(m_BattleMembers.ContainsKey(data.m_PlayerIndex))
+                                    {
+                                        m_BattleMembers[data.m_PlayerIndex].MemberActionType = data.m_ActionType;
+                                        continue;
+                                    }
+                                }
                             }
                         }
-                        syncBattleData.m_BattleMemberDatas.Add(member.PlayerIndex, member.BattleMemberData);
-                    }
-
-                    foreach (BattleMember member in m_BattleMembers.Values)
-                    {
-                        member.GameSession.SendManager.SendSCSyncBattleData(syncBattleData);
                     }
                 }
+
+                // 공격 판정
+                PLAYER_INDEX loserPlayer = PLAYER_INDEX.NONE;
+                if(MemberCount == MAX_MEMBER_COUNT && m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1) && m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
+                {
+                    loserPlayer = m_BattleManager.UpdateGameResult(m_BattleMembers[PLAYER_INDEX.PLAYER_1], m_BattleMembers[PLAYER_INDEX.PLAYER_2]);
+                }
+
+                if(loserPlayer == PLAYER_INDEX.NONE)
+                {
+                    // 이동 처리
+                    foreach (BattleMember member in m_BattleMembers.Values)
+                    {
+                        m_BattleManager.UpdatePlayerMapMove(member);
+                    }
+                }
+                else
+                {
+                    // 승리 처리
+                    if(m_BattleMembers.ContainsKey(loserPlayer))
+                    {
+                        m_BattleMembers[loserPlayer].MemberActionType = ACTION_TYPE.DIE;
+                    }
+                }
+
+                m_TimePast += 1000 / 60;
+                m_GameTimeRemain = 60 - ((int)m_TimePast / 1000);
+
+                // 시간이 종료 되어 무승부 처리
+                if (m_GameTimeRemain < 0)
+                {
+                    return;
+                }
+
+                Common.Packet.SCSyncBattleData syncBattleData = new Common.Packet.SCSyncBattleData();
+                syncBattleData.m_Frame = m_Frame;
+                syncBattleData.m_GameTimeRemain = m_GameTimeRemain;
+
+                foreach (BattleMember member in m_BattleMembers.Values)
+                {
+                    syncBattleData.m_BattleMemberDatas.Add((int)member.PlayerIndex, member.BattleMemberData);
+                }
+
+                foreach (BattleMember member in m_BattleMembers.Values)
+                {
+                    member.GameSession.SendManager.SendSCSyncBattleData(syncBattleData);
+                }
+
+                Interlocked.Increment(ref m_Frame);
             }
         }
 
-        public void JoinBattleRoom(GameSession session, out int roomIndex, out int playerIndex, out BattleMapData battleMapData)
+        public void JoinBattleRoom(GameSession session, out int roomIndex, out PLAYER_INDEX playerIndex, out BattleMapData battleMapData)
         {
             roomIndex     = m_RoomIndex;
-            playerIndex   = MemberCount;
+            playerIndex   = (PLAYER_INDEX)MemberCount;
             battleMapData = m_BattleManager.BattleMapData;
 
-            BattleMember member = new BattleMember(MemberCount, session);
+            BattleMember member = new BattleMember(playerIndex, session);
             m_BattleMembers.TryAdd(member.PlayerIndex, member);
-            m_BattleManager.SetBattleMember(member.PlayerIndex, member);
+            m_BattleMemberActionDatas.TryAdd(member.PlayerIndex, new ConcurrentQueue<CSBattleMemberActionData>());
         }
 
-        public void ReadyBattle(int playerIndex)
+        public void ReadyBattle(PLAYER_INDEX playerIndex)
         {
             switch(playerIndex)
             {
-                case 0:
+                case PLAYER_INDEX.PLAYER_1:
                     m_IsReadyPlayer1 = true;
                     break;
-                case 1:
+                case PLAYER_INDEX.PLAYER_2:
                     m_IsReadyPlayer2 = true;
                     break;
             }
@@ -164,15 +184,10 @@ namespace GameServer.Room
             if (m_IsReadyPlayer1 && m_IsReadyPlayer2)
             {
                 IsStartGame = true;
-
-                foreach (BattleMember member in m_BattleMembers.Values)
-                {
-                    member.GameSession.SendManager.SendSCStartBattle();
-                }
             }
         }
 
-        public bool LeaveBattleRoom(int playerIndex)
+        public bool LeaveBattleRoom(PLAYER_INDEX playerIndex)
         {
             BattleMember member = null;
             m_BattleMembers.TryRemove(playerIndex, out member);
@@ -193,14 +208,6 @@ namespace GameServer.Room
                 m_BattleRoomTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 m_BattleRoomTimer.Dispose();
                 m_BattleRoomTimer = null;
-            }
-        }
-
-        public void SetBattleMemberActionData(int playerIndex, ACTION_TYPE actionType)
-        {
-            if (m_BattleMembers.ContainsKey(playerIndex))
-            {
-                m_BattleMembers[playerIndex].MemberActionType = actionType;
             }
         }
     }
