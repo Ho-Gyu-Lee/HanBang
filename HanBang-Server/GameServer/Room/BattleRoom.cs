@@ -156,6 +156,29 @@ namespace GameServer.Room
         {
             m_GameTimeRemain -= (float)deltatime;
 
+            // 이동 처리
+            foreach (BattleMember member in m_BattleMembers.Values)
+            {
+                ActionData data = null;
+                while (true)
+                {
+                    if (member.ActionDataQueue.IsEmpty) break;
+
+                    if (member.ActionDataQueue.TryDequeue(out data))
+                    {
+                        if (data.m_Frame == m_Frame)
+                        {
+                            member.MemberActionType = data.m_ActionType;
+                            break;
+                        }
+                    }
+                }
+                m_BattleManager.UpdatePlayerTerrainMove(deltatime, member, BattleTerrainData);
+            }
+
+            if (m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1) && m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
+                m_BattleManager.UpdatePlayersCollision(deltatime, m_BattleMembers[PLAYER_INDEX.PLAYER_1], m_BattleMembers[PLAYER_INDEX.PLAYER_2]);
+
             // 공격 판정
             PLAYER_INDEX loserPlayer = PLAYER_INDEX.NONE;
             if (MemberCount == MAX_MEMBER_COUNT && 
@@ -165,29 +188,7 @@ namespace GameServer.Room
                 loserPlayer = m_BattleManager.UpdateGameResult(m_BattleMembers[PLAYER_INDEX.PLAYER_1], m_BattleMembers[PLAYER_INDEX.PLAYER_2]);
             }
 
-            if (loserPlayer == PLAYER_INDEX.NONE)
-            {
-                // 이동 처리
-                foreach (BattleMember member in m_BattleMembers.Values)
-                {
-                    ActionData data = null;
-                    while(true)
-                    {
-                        if(member.ActionDataQueue.TryDequeue(out data))
-                        {
-                            if (data.m_Frame == m_Frame)
-                                break;
-                        }
-                    }
-
-                    member.MemberActionType = data.m_ActionType;
-                    m_BattleManager.UpdatePlayerTerrainMove(deltatime, member, BattleTerrainData);
-                }
-
-                if (m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1) && m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
-                    m_BattleManager.UpdatePlayersCollision(deltatime, m_BattleMembers[PLAYER_INDEX.PLAYER_1], m_BattleMembers[PLAYER_INDEX.PLAYER_2]);
-            }
-            else
+            if (loserPlayer != PLAYER_INDEX.NONE)
             {
                 // 승리 처리
                 if (m_BattleMembers.ContainsKey(loserPlayer))

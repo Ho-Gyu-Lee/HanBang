@@ -183,16 +183,19 @@ public class GameManager : MonoBehaviour
             {
                 gameObject = m_Enemy;
                 m_EnemyScript.OnChageAnimation(member.m_ActionType);
-                m_Player2KillCountText.text = member.m_KillCount.ToString();
             }
             else
             {
                 gameObject = m_Player;
                 m_PlayerScript.OnChageAnimation(member.m_ActionType);
-                m_Player1KillCountText.text = member.m_KillCount.ToString();
             }
 
-            if(gameObject != null)
+            if(member.m_PlayerIndex == PLAYER_INDEX.PLAYER_1)
+                m_Player1KillCountText.text = member.m_KillCount.ToString();
+            else
+                m_Player2KillCountText.text = member.m_KillCount.ToString();
+
+            if (gameObject != null)
                 gameObject.transform.position = new Vector3(member.m_Pos.m_X, member.m_Pos.m_Y, 0);
         }
 

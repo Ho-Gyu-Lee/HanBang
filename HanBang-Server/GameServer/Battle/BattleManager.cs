@@ -6,7 +6,7 @@ namespace GameServer.Battle
 {
     class BattleManager
     {
-        private const float PLAYER_SPEED = 7.5F;
+        private const float PLAYER_SPEED = 7.0F;
 
         private const float PLAYER_COLLISION_BOX_X = 1.3F;
         private const float PLAYER_COLLISION_BOX_Y = 1.3F;
