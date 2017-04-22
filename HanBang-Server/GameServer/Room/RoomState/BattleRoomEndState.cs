@@ -21,6 +21,7 @@ namespace GameServer.Room.RoomState
             m_WaitTime -= deltatime;
             if (m_WaitTime <= 0.0F)
             {
+                m_BattleRoom.InitBattleRoom();
                 m_BattleRoom.ChangeBattleRoomState(ROOM_STATE.READY);
             }
         }

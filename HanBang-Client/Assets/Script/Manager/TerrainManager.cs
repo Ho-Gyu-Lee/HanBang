@@ -27,12 +27,10 @@ public class TerrainManager : MonoBehaviour
 
     public BattleTerrainData BattleTerrainData { get; private set; }
 
-    public GameObject TileMap01 = null;
-
     // Use this for initialization
     void Start ()
     {
-        object[] resources = Resources.LoadAll("Prefabs/TilePrefabs");
+        object[] resources = Resources.LoadAll("Prefabs/Tile");
         foreach (object prefab in resources)
         {
             GameObject gameobject = prefab as GameObject;
@@ -50,21 +48,14 @@ public class TerrainManager : MonoBehaviour
     {
         BattleTerrainData = battleTerrainData;
 
-        for (int i = 0; i < 20; ++i)
-        {
-            for (int j = 0; j < 20; ++j)
-            {
-                GameObject tile = Instantiate(m_TilePrefabs["grass"], new Vector3(-12.8F + (1.28F * j), 12.8F - (1.28F * i), 10), Quaternion.identity);
-                tile.name = i.ToString() + "_" + j.ToString();
-                tile.transform.parent = TileMap01.transform;
-            }
-        }
+        GameObject terrain = Instantiate(Resources.Load("Prefabs/Terrain/Terrain01") as GameObject, new Vector3(-0.6F, 0.2F, 10), Quaternion.identity);
+        terrain.transform.parent = transform;
 
-        foreach(ObstacleData data in BattleTerrainData.m_ObstacleDatas)
+        foreach (ObstacleData data in BattleTerrainData.m_ObstacleDatas)
         {
             GameObject obstacle = Instantiate(m_TilePrefabs["tree"], new Vector3(data.m_Pos.m_X, data.m_Pos.m_Y, 5), Quaternion.identity);
             obstacle.transform.localScale = new Vector3(1.5F, 1.5F, 0.0F);
-            obstacle.transform.parent = TileMap01.transform;
+            obstacle.transform.parent = terrain.transform;
         }
     }
 }

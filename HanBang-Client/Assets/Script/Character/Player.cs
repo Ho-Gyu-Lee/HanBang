@@ -13,14 +13,15 @@ public class Player : MonoBehaviour
 
     private bool m_IsPlayerDie = false;
 
-    private CSBattleMemberActionData m_BattleMemberActionData = new CSBattleMemberActionData();
+    public CSBattleMemberActionData BattleMemberActionData { get; private set; }
 
     public void Initialize(PLAYER_INDEX playerIndex)
     {
         m_IsPlayerDie = false;
         m_IsAttackAnimation = false;
 
-        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.NONE;
+        if(BattleMemberActionData != null)
+            BattleMemberActionData.m_ActionType = ACTION_TYPE.NONE;
 
         if(m_PlayerAnimator != null)
             m_PlayerAnimator.SetInteger("ActionControll", 0);
@@ -50,6 +51,8 @@ public class Player : MonoBehaviour
         m_Camera.transform.position = new Vector3(transform.transform.position.x, transform.transform.position.y + 1, m_Camera.transform.position.z);
 
         m_PlayerAnimator = GetComponent<Animator>();
+
+        BattleMemberActionData = new CSBattleMemberActionData();
 
         // UI Setting
         CustomButton leftButton = GameObject.Find("Left").GetComponent<CustomButton>();
@@ -114,7 +117,7 @@ public class Player : MonoBehaviour
 
             Vector3 playerInfo = transform.transform.position;
             Vector3 cameraPostion = m_Camera.transform.position;
-            if (playerInfo.x >= (minMapSizeX + 8.3F) && playerInfo.x <= (maxMapSizeX - 8.12F))
+            if (playerInfo.x >= (minMapSizeX + 8.3F) && playerInfo.x <= (maxMapSizeX - 8.2F))
             {
                 cameraPostion.x = playerInfo.x;
             }
@@ -143,11 +146,9 @@ public class Player : MonoBehaviour
 
         if (m_IsAttackAnimation) return;
 
-        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.LEFT) return;
+        if (BattleMemberActionData.m_ActionType == ACTION_TYPE.LEFT) return;
 
-        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.LEFT;
-
-        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
+        BattleMemberActionData.m_ActionType = ACTION_TYPE.LEFT;
     }
 
     public void SendPlayerRightMove()
@@ -156,11 +157,9 @@ public class Player : MonoBehaviour
 
         if (m_IsAttackAnimation) return;
 
-        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.RIGHT) return;
+        if (BattleMemberActionData.m_ActionType == ACTION_TYPE.RIGHT) return;
 
-        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.RIGHT;
-
-        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
+        BattleMemberActionData.m_ActionType = ACTION_TYPE.RIGHT;
     }
 
     public void SendPlayerUpMove()
@@ -169,11 +168,9 @@ public class Player : MonoBehaviour
 
         if (m_IsAttackAnimation) return;
 
-        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.UP) return;
+        if (BattleMemberActionData.m_ActionType == ACTION_TYPE.UP) return;
 
-        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.UP;
-
-        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
+        BattleMemberActionData.m_ActionType = ACTION_TYPE.UP;
     }
 
     public void SendPlayerDownMove()
@@ -182,22 +179,18 @@ public class Player : MonoBehaviour
 
         if (m_IsAttackAnimation) return;
 
-        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.DOWN) return;
+        if (BattleMemberActionData.m_ActionType == ACTION_TYPE.DOWN) return;
 
-        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.DOWN;
-
-        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
+        BattleMemberActionData.m_ActionType = ACTION_TYPE.DOWN;
     }
 
     public void SendPlayerIdle()
     {
         if (m_IsPlayerDie) return;
 
-        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.NONE) return;
+        if (BattleMemberActionData.m_ActionType == ACTION_TYPE.NONE) return;
 
-        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.NONE;
-
-        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
+        BattleMemberActionData.m_ActionType = ACTION_TYPE.NONE;
     }
 
     public void SendPlayerAttack()
@@ -206,12 +199,10 @@ public class Player : MonoBehaviour
 
         if (m_IsAttackAnimation) return;
 
-        if (m_BattleMemberActionData.m_ActionType == ACTION_TYPE.ATTACK) return;
+        if (BattleMemberActionData.m_ActionType == ACTION_TYPE.ATTACK) return;
 
         m_IsAttackAnimation = true;
-        m_BattleMemberActionData.m_ActionType = ACTION_TYPE.ATTACK;
-
-        GameManager.Instance.SendPlayerActionData(m_BattleMemberActionData);
+        BattleMemberActionData.m_ActionType = ACTION_TYPE.ATTACK;
     }
 
     public void OnChageAnimation(ACTION_TYPE actionType)

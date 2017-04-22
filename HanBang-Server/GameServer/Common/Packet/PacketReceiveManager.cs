@@ -31,6 +31,9 @@ namespace GameServer.Common.Packet
         public delegate void OnCSLeaveBattleRoomDelegate();
         public OnCSLeaveBattleRoomDelegate CSLeaveBattleRoom;
 
+        public delegate void OnSCBattleWatingDataDelegate(SCBattleWatingData data);
+        public OnSCBattleWatingDataDelegate SCBattleWatingData;
+
         public void OnReceiveMessage(int type, byte[] body)
         {
             m_MemStream.SetLength(0);
@@ -88,6 +91,13 @@ namespace GameServer.Common.Packet
                 case PACKET_TYPE.CS_LEAVE_BATTLE_ROOM:
                     {
                         CSLeaveBattleRoom();
+                    }
+                    break;
+
+                case PACKET_TYPE.SC_BATTLE_WATITING_DATA:
+                    {
+                        MessagePackSerializer<SCBattleWatingData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCBattleWatingData>();
+                        SCBattleWatingData(derializer.Unpack(m_MemStream));
                     }
                     break;
             }

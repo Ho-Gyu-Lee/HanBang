@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GameServer.Common.Packet;
+using System;
 
 namespace GameServer.Room.RoomState
 {
     class BattleRoomWaitState : BattleRoomState
     {
         private double m_WaitTime = 3.0F;
+
+        private int m_Count = 0;
 
         public BattleRoomWaitState(BattleRoom battleRoom) : base(battleRoom)
         {
@@ -20,11 +19,13 @@ namespace GameServer.Room.RoomState
             m_WaitTime -= deltatime;
             if(m_WaitTime <= 0.0F)
             {
-                // 유저 위치 초기화
+                m_BattleRoom.SendWatingData(WAITING_TYPE.RE_START_BATTLE, m_Count);
 
-                // 유저 액션 초기화
+                // 유저 초기화
+                m_BattleRoom.InitBattleMember();
 
                 // 게임 상태 플레이로 변경
+                m_BattleRoom.ChangeBattleRoomState(ROOM_STATE.PLAY);
             }
         }
     }

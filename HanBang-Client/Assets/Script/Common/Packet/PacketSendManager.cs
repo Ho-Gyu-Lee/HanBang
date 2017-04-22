@@ -91,5 +91,16 @@ namespace GameServer.Common.Packet
             byte[] buffer = new byte[0];
             SendHandler((int)PACKET_TYPE.CS_LEAVE_BATTLE_ROOM, buffer, buffer.Length);
         }
+
+        public void SendSCBattleWatingData(SCBattleWatingData data)
+        {
+            MemStream.SetLength(0);
+            MemStream.Position = 0;
+
+            MessagePackSerializer<SCBattleWatingData> serializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<SCBattleWatingData>();
+            serializer.Pack(MemStream, data);
+
+            SendHandler((int)PACKET_TYPE.SC_BATTLE_WATITING_DATA, MemStream.GetBuffer(), (int)MemStream.Length);
+        }
     }
 }

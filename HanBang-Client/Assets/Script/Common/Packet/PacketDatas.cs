@@ -14,6 +14,7 @@ namespace GameServer.Common.Packet
         CS_BATTLE_MEMBER_DATA,
         SC_BATTLE_MEMBER_DATA,
         CS_READY_BATTLE,
+        SC_BATTLE_WATITING_DATA,
         CS_LEAVE_BATTLE_ROOM,
     }
 
@@ -35,6 +36,13 @@ namespace GameServer.Common.Packet
         NONE     = -1,
         PLAYER_1 = 0,
         PLAYER_2 = 1,
+    }
+
+    public enum WAITING_TYPE
+    {
+        NONE,
+        START_BATTLE,
+        RE_START_BATTLE,
     }
 
     public class PosData
@@ -99,6 +107,9 @@ namespace GameServer.Common.Packet
         public ACTION_TYPE m_ActionType = ACTION_TYPE.NONE;
 
         [MessagePackMember(2, NilImplication = NilImplication.MemberDefault)]
+        public int m_KillCount = 0;
+
+        [MessagePackMember(3, NilImplication = NilImplication.MemberDefault)]
         public PosData m_Pos;
     }
 
@@ -112,6 +123,15 @@ namespace GameServer.Common.Packet
 
         [MessagePackMember(2, NilImplication = NilImplication.MemberDefault)]
         public ACTION_TYPE m_ActionType = ACTION_TYPE.NONE;
+    }
+
+    public class SCBattleWatingData
+    {
+        [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
+        public WAITING_TYPE m_WaitingType = WAITING_TYPE.NONE;
+
+        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
+        public int m_Count = 0;
     }
 
     public class SCSyncBattleData

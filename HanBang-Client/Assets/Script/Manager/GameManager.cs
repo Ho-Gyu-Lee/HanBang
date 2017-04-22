@@ -27,28 +27,30 @@ public class GameManager : MonoBehaviour
 
     private GameObject m_CharacterGroup = null;
 
-    private GameObject m_Player1 = null;
-    private GameObject m_Player2 = null;
+    private GameObject m_Player = null;
+    private Player m_PlayerScript = null;
+
+    private GameObject m_Enemy = null;
+    private Enemy m_EnemyScript = null;
+
+    private GameObject m_BattleUI = null;
+    private GameObject m_TitleUI = null;
 
     private Text m_BattleTimeText = null;
 
-    private List<string> m_CharacterResourcesName = new List<string>();
+    private GameObject m_StartBattleCount = null;
+    private Text m_StartBattleCountText = null;
 
-    private int m_Frame = 0;
+    private Text m_Player1KillCountText = null;
+    private Text m_Player2KillCountText = null;
+
+    private List<string> m_CharacterResourcesName = new List<string>();
 
     public int RoomIndex { get; private set; }
 
     public PLAYER_INDEX PlayerIndex { get; private set; }
 
     public PLAYER_INDEX EnumyPlayerIndex { get; private set; }
-
-    public GameObject Player(PLAYER_INDEX playerIndex)
-    {
-        if (PlayerIndex == playerIndex)
-            return m_Player1;
-        else
-            return m_Player2;
-    }
 
     void Awake()
     {
@@ -65,7 +67,20 @@ public class GameManager : MonoBehaviour
             m_Characters.Add(gameobject.name, gameobject);
         }
 
+        m_BattleUI = GameObject.Find("BattleUI");
+        m_TitleUI  = GameObject.Find("TitleUI");
+
         m_BattleTimeText = GameObject.Find("GameTimeRemain").GetComponent<Text>();
+
+        m_StartBattleCount = GameObject.Find("StartCount");
+        m_StartBattleCountText = m_StartBattleCount.GetComponent<Text>();
+        m_StartBattleCount.SetActive(false);
+
+        m_Player1KillCountText = GameObject.Find("PlayerKillCount").GetComponent<Text>();
+        m_Player2KillCountText = GameObject.Find("EnemyKillCount").GetComponent<Text>();
+
+        m_BattleUI.SetActive(false);
+
         m_CharacterGroup = GameObject.Find("CharacterGroup");
 
         // 임시 캐릭터 리소스
@@ -85,78 +100,103 @@ public class GameManager : MonoBehaviour
     {
         RoomIndex = roomIndex;
         TerrainManager.Instance.OnBattleTerrainData(battleTerrainData);
+
+        m_TitleUI.SetActive(false);
+        m_BattleUI.SetActive(true);
     }
 
     public void InitializePlayer()
     {
-        Player playerScript = m_Player1.GetComponent<Player>();
-        playerScript.Initialize(PlayerIndex);
-
-        Enemy enemyscript = m_Player2.GetComponent<Enemy>();
-        enemyscript.Initialize(EnumyPlayerIndex);
+        m_PlayerScript.Initialize(PlayerIndex);
+        m_EnemyScript.Initialize(EnumyPlayerIndex);
     }
 
     public void OnPlayerSpawn(PLAYER_INDEX playerIndex, PosData pos)
     {
-        if (m_Player1 != null) return;
+        if (m_Player != null) return;
 
         PlayerIndex = playerIndex;
 
-        m_Player1 = Instantiate(m_Characters[m_CharacterResourcesName[(int)PlayerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
-        m_Player1.transform.localScale = new Vector3(0.23F, 0.23F, 1);
-        m_Player1.transform.parent = m_CharacterGroup.transform;
-        m_Player1.AddComponent<Player>();
+        m_Player = Instantiate(m_Characters[m_CharacterResourcesName[(int)PlayerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
+        m_Player.transform.localScale = new Vector3(0.23F, 0.23F, 1);
+        m_Player.transform.parent = m_CharacterGroup.transform;
+        m_Player.AddComponent<Player>();
 
-        Player script = m_Player1.GetComponent<Player>();
-        script.Initialize(PlayerIndex);
+        m_PlayerScript = m_Player.GetComponent<Player>();
+        m_PlayerScript.Initialize(PlayerIndex);
     }
 
     public void OnEnemySpawn(PLAYER_INDEX playerIndex, PosData pos)
     {
-        if (m_Player2 != null) return;
+        if (m_Enemy != null) return;
 
         EnumyPlayerIndex = playerIndex;
 
-        m_Player2 = Instantiate(m_Characters[m_CharacterResourcesName[(int)EnumyPlayerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
-        m_Player2.transform.localScale = new Vector3(0.23F, 0.23F, 1);
-        m_Player2.transform.parent = m_CharacterGroup.transform;
-        m_Player2.AddComponent<Enemy>();
+        m_Enemy = Instantiate(m_Characters[m_CharacterResourcesName[(int)EnumyPlayerIndex]], new Vector3(pos.m_X, pos.m_Y, 0.0F), Quaternion.identity);
+        m_Enemy.transform.localScale = new Vector3(0.23F, 0.23F, 1);
+        m_Enemy.transform.parent = m_CharacterGroup.transform;
+        m_Enemy.AddComponent<Enemy>();
 
-        Enemy script = m_Player2.GetComponent<Enemy>();
-        script.Initialize(EnumyPlayerIndex);
+        m_EnemyScript = m_Enemy.GetComponent<Enemy>();
+        m_EnemyScript.Initialize(EnumyPlayerIndex);
 
         // 적 정보 까지 모두 받으면 준비 완료
         ClientNetworkManager.Instance.SendManager.SendCSReadyBattle();
     }
 
+    public void OnSCBattleWating(SCBattleWatingData data)
+    {
+        switch (data.m_WaitingType)
+        {
+            case WAITING_TYPE.START_BATTLE:
+                {
+                    if (m_StartBattleCount.activeSelf == false)
+                    {
+                        InitializePlayer();
+                        m_StartBattleCount.SetActive(true);
+                    }
+
+                    m_StartBattleCountText.text = data.m_Count.ToString();
+
+                    if (data.m_Count <= 0)
+                        m_StartBattleCount.SetActive(false);
+                }
+                break;
+
+            case WAITING_TYPE.RE_START_BATTLE:
+                {
+                    if (data.m_Count <= 0)
+                        InitializePlayer();
+                }
+                break;
+        }
+    }
+
     public void OnSyncBattle(SCSyncBattleData data)
     {
-        m_Frame = data.m_Frame;
         m_BattleTimeText.text = "남은 시간 : " + data.m_GameTimeRemain.ToString();
 
         foreach (BattleMemberData member in data.m_BattleMemberDatas.Values)
         {
-            GameObject player = Player(member.m_PlayerIndex);
-            if (player != null)
+            GameObject gameObject = null;
+            if (PlayerIndex != member.m_PlayerIndex)
             {
-                if (PlayerIndex != member.m_PlayerIndex)
-                {
-                    Enemy script = player.GetComponent<Enemy>();
-                    script.OnChageAnimation(member.m_ActionType);
-                }
-                else
-                {
-                    Player script = player.GetComponent<Player>();
-                    script.OnChageAnimation(member.m_ActionType);
-                }
-                player.transform.position = new Vector3(member.m_Pos.m_X, member.m_Pos.m_Y, 0);
+                gameObject = m_Enemy;
+                m_EnemyScript.OnChageAnimation(member.m_ActionType);
+                m_Player2KillCountText.text = member.m_KillCount.ToString();
             }
-        }
-    }
+            else
+            {
+                gameObject = m_Player;
+                m_PlayerScript.OnChageAnimation(member.m_ActionType);
+                m_Player1KillCountText.text = member.m_KillCount.ToString();
+            }
 
-    public void SendPlayerActionData(CSBattleMemberActionData data)
-    {
-        data.m_Frame = m_Frame + 1;
-        ClientNetworkManager.Instance.SendManager.SendCSBattleMemberActionData(data);
+            if(gameObject != null)
+                gameObject.transform.position = new Vector3(member.m_Pos.m_X, member.m_Pos.m_Y, 0);
+        }
+
+        m_PlayerScript.BattleMemberActionData.m_Frame = data.m_Frame + 1;
+        ClientNetworkManager.Instance.SendManager.SendCSBattleMemberActionData(m_PlayerScript.BattleMemberActionData);
     }
 }

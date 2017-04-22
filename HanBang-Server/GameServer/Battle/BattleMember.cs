@@ -25,6 +25,8 @@ namespace GameServer.Battle
 
         public bool MemberLook = false;
 
+        public ConcurrentQueue<ActionData> ActionDataQueue { get; private set; }
+
         public ACTION_TYPE MemberActionType
         {
             get { return m_BattleMemberData.m_ActionType; }
@@ -37,6 +39,8 @@ namespace GameServer.Battle
 
             m_BattleMemberData.m_PlayerIndex = playerIndex;
 
+            ActionDataQueue = new ConcurrentQueue<ActionData>();
+
             Initialize();
         }
 
@@ -47,15 +51,18 @@ namespace GameServer.Battle
                 case PLAYER_INDEX.PLAYER_1:
                     {
                         MemberLook = false;
-                        m_BattleMemberData.m_Pos = new PosData(-3.0F, 0.0F);
                         MemberActionType = ACTION_TYPE.NONE;
+
+                        m_BattleMemberData.m_Pos = new PosData(-3.0F, 0.0F);
+
                     }
                     break;
                 case PLAYER_INDEX.PLAYER_2:
                     {
                         MemberLook = true;
-                        m_BattleMemberData.m_Pos = new PosData(3.0F, 0.0F);
                         MemberActionType = ACTION_TYPE.NONE;
+
+                        m_BattleMemberData.m_Pos = new PosData(3.0F, 0.0F);
                     }
                     break;
             }

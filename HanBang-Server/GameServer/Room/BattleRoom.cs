@@ -39,9 +39,6 @@ namespace GameServer.Room
         private bool m_IsReadyPlayer1 = false;
         private bool m_IsReadyPlayer2 = false;
 
-        private int m_Player1KillCount = 0;
-        private int m_Player2KillCount = 0;
-
         public int MemberCount { get { return m_BattleMembers.Count; } }
 
         public BattleRoom(int roomIndex, int mapIndex)
@@ -59,59 +56,59 @@ namespace GameServer.Room
 
             Random random = new Random();
             ObstacleData obstacleData1 = new ObstacleData();
-            obstacleData1.m_Pos = new PosData();
-            obstacleData1.m_Pos.m_X = random.Next(-11, 11);
-            obstacleData1.m_Pos.m_Y = random.Next(-11, 11);
+            obstacleData1.m_Pos = new PosData(-8.36F, 10.9F);
             BattleTerrainData.m_ObstacleDatas.Add(obstacleData1);
 
             ObstacleData obstacleData2 = new ObstacleData();
-            obstacleData2.m_Pos = new PosData();
-            obstacleData2.m_Pos.m_X = random.Next(-11, 11);
-            obstacleData2.m_Pos.m_Y = random.Next(-11, 11);
+            obstacleData2.m_Pos = new PosData(-1.4F, 8.6F);
             BattleTerrainData.m_ObstacleDatas.Add(obstacleData2);
 
             ObstacleData obstacleData3 = new ObstacleData();
-            obstacleData3.m_Pos = new PosData();
-            obstacleData3.m_Pos.m_X = random.Next(-11, 11);
-            obstacleData3.m_Pos.m_Y = random.Next(-11, 11);
+            obstacleData3.m_Pos = new PosData(5.0F, 8.8F);
             BattleTerrainData.m_ObstacleDatas.Add(obstacleData3);
 
             ObstacleData obstacleData4 = new ObstacleData();
-            obstacleData4.m_Pos = new PosData();
-            obstacleData4.m_Pos.m_X = random.Next(-11, 11);
-            obstacleData4.m_Pos.m_Y = random.Next(-11, 11);
+            obstacleData4.m_Pos = new PosData(-6.5F, 3.2F);
             BattleTerrainData.m_ObstacleDatas.Add(obstacleData4);
 
             ObstacleData obstacleData5 = new ObstacleData();
-            obstacleData5.m_Pos = new PosData();
-            obstacleData5.m_Pos.m_X = random.Next(-11, 11);
-            obstacleData5.m_Pos.m_Y = random.Next(-11, 11);
+            obstacleData5.m_Pos = new PosData(6.89F, 2.56F);
             BattleTerrainData.m_ObstacleDatas.Add(obstacleData5);
 
             ObstacleData obstacleData6 = new ObstacleData();
-            obstacleData6.m_Pos = new PosData();
-            obstacleData6.m_Pos.m_X = random.Next(-11, 11);
-            obstacleData6.m_Pos.m_Y = random.Next(-11, 11);
+            obstacleData6.m_Pos = new PosData(3.41F, -2.76F);
             BattleTerrainData.m_ObstacleDatas.Add(obstacleData6);
 
             ObstacleData obstacleData7 = new ObstacleData();
-            obstacleData7.m_Pos = new PosData();
-            obstacleData7.m_Pos.m_X = random.Next(-11, 11);
-            obstacleData7.m_Pos.m_Y = random.Next(-11, 11);
+            obstacleData7.m_Pos = new PosData(-3.7F, -4.27F);
             BattleTerrainData.m_ObstacleDatas.Add(obstacleData7);
 
             ObstacleData obstacleData8 = new ObstacleData();
-            obstacleData8.m_Pos = new PosData();
-            obstacleData8.m_Pos.m_X = random.Next(-11, 11);
-            obstacleData8.m_Pos.m_Y = random.Next(-11, 11);
+            obstacleData8.m_Pos = new PosData(-9.33F, -8.0F);
             BattleTerrainData.m_ObstacleDatas.Add(obstacleData8);
+
+            ObstacleData obstacleData9 = new ObstacleData();
+            obstacleData9.m_Pos = new PosData(-4.79F, -10.0F);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData9);
+
+            ObstacleData obstacleData10 = new ObstacleData();
+            obstacleData10.m_Pos = new PosData(-1.8F, -8.95F);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData10);
+
+            ObstacleData obstacleData11 = new ObstacleData();
+            obstacleData11.m_Pos = new PosData(8.7F, -10.08F);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData11);
+
+            ObstacleData obstacleData12 = new ObstacleData();
+            obstacleData12.m_Pos = new PosData(11.42F, -10.05F);
+            BattleTerrainData.m_ObstacleDatas.Add(obstacleData12);
             #endregion
         }
 
         public void OnOnBattleMemberActionData(PLAYER_INDEX playerIndex, CSBattleMemberActionData data)
         {
             if (m_BattleMembers.ContainsKey(playerIndex))
-                m_BattleMembers[playerIndex].MemberActionType = data.m_ActionType;
+                m_BattleMembers[playerIndex].ActionDataQueue.Enqueue(new ActionData() { m_Frame = data.m_Frame, m_ActionType = data.m_ActionType });
         }
 
         public void OnBattleMemberData()
@@ -126,6 +123,32 @@ namespace GameServer.Room
             {
                 data.m_MyPlayerIndex = member.PlayerIndex;
                 member.GameSession.SendManager.SendSCBattleMemberData(data);
+            }
+        }
+
+        public void SendWatingData(WAITING_TYPE waitingType, int count)
+        {
+            foreach (BattleMember member in m_BattleMembers.Values)
+            {
+                member.GameSession.SendManager.SendSCBattleWatingData(new SCBattleWatingData() { m_WaitingType = waitingType, m_Count = count });
+            }
+        }
+
+        public void InitBattleRoom()
+        {
+            m_GameTimeRemain = 60.0F;
+            foreach (BattleMember member in m_BattleMembers.Values)
+            {
+                member.Initialize();
+                member.BattleMemberData.m_KillCount = 0;
+            }
+        }
+
+        public void InitBattleMember()
+        {
+            foreach (BattleMember member in m_BattleMembers.Values)
+            {
+                member.Initialize();
             }
         }
 
@@ -147,8 +170,22 @@ namespace GameServer.Room
                 // 이동 처리
                 foreach (BattleMember member in m_BattleMembers.Values)
                 {
+                    ActionData data = null;
+                    while(true)
+                    {
+                        if(member.ActionDataQueue.TryDequeue(out data))
+                        {
+                            if (data.m_Frame == m_Frame)
+                                break;
+                        }
+                    }
+
+                    member.MemberActionType = data.m_ActionType;
                     m_BattleManager.UpdatePlayerTerrainMove(deltatime, member, BattleTerrainData);
                 }
+
+                if (m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1) && m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
+                    m_BattleManager.UpdatePlayersCollision(deltatime, m_BattleMembers[PLAYER_INDEX.PLAYER_1], m_BattleMembers[PLAYER_INDEX.PLAYER_2]);
             }
             else
             {
@@ -160,17 +197,17 @@ namespace GameServer.Room
                     switch (loserPlayer)
                     {
                         case PLAYER_INDEX.PLAYER_1:
-                            m_Player2KillCount++;
+                            m_BattleMembers[PLAYER_INDEX.PLAYER_2].BattleMemberData.m_KillCount++;
                             break;
                         case PLAYER_INDEX.PLAYER_2:
-                            m_Player1KillCount++;
+                            m_BattleMembers[PLAYER_INDEX.PLAYER_1].BattleMemberData.m_KillCount++;
                             break;
                     }
-
-                    ChangeBattleRoomState(ROOM_STATE.WAIT);
                 }
             }
         }
+
+        public ROOM_STATE GetRoomState() { lock (StateLock) return State; }
 
         public void ChangeBattleRoomState(ROOM_STATE state)
         {
@@ -203,16 +240,30 @@ namespace GameServer.Room
         {
             lock(state)
             {
-                if (m_Time == null)
-                    m_Time = new Time();
-
                 m_Time.Update();
 
-                // 시간이 종료가 되거나 누군가 3승을 먼저 할 경우 
-                if (m_GameTimeRemain < 0 || m_Player1KillCount == 3 || m_Player2KillCount == 3)
+                if(GetRoomState() == ROOM_STATE.PLAY)
                 {
-                    ChangeBattleRoomState(ROOM_STATE.END);
-                    return;
+                    // 시간이 종료가 되거나 누군가 3승을 먼저 할 경우 
+                    int player1KillCount = 0;
+                    int player2KillCount = 0;
+
+                    if (m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1))
+                        player1KillCount = m_BattleMembers[PLAYER_INDEX.PLAYER_1].BattleMemberData.m_KillCount;
+
+                    if (m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
+                        player2KillCount = m_BattleMembers[PLAYER_INDEX.PLAYER_2].BattleMemberData.m_KillCount;
+
+                    if (m_GameTimeRemain < 0 || player1KillCount == 3 || player2KillCount == 3)
+                    {
+                        ChangeBattleRoomState(ROOM_STATE.END);
+                    }
+
+                    foreach (BattleMember member in m_BattleMembers.Values)
+                    {
+                        if (member.MemberActionType == ACTION_TYPE.DIE)
+                            ChangeBattleRoomState(ROOM_STATE.WAIT);
+                    }
                 }
 
                 BattleRoomState.Update(m_Time.DeltaTime);
@@ -259,6 +310,7 @@ namespace GameServer.Room
 
             if (m_IsReadyPlayer1 && m_IsReadyPlayer2)
             {
+                m_Time = new Time();
                 m_BattleRoomTimer = new System.Threading.Timer(Update, new object(), 0, 1000 / 60);
                 ChangeBattleRoomState(ROOM_STATE.READY);
             }

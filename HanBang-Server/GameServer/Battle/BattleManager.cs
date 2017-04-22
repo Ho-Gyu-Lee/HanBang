@@ -6,7 +6,7 @@ namespace GameServer.Battle
 {
     class BattleManager
     {
-        private const float PLAYER_SPEED = 0.25F;
+        private const float PLAYER_SPEED = 7.5F;
 
         private const float PLAYER_COLLISION_BOX_X = 1.3F;
         private const float PLAYER_COLLISION_BOX_Y = 1.3F;
@@ -58,17 +58,17 @@ namespace GameServer.Battle
             PosData attackCollisionBox = null;
             if (look)
             {
-                attackCollisionBox = new PosData(attack.m_X - (PLAYER_COLLISION_BOX_X * 2), attack.m_Y);
+                attackCollisionBox = new PosData(attack.m_X - (0.5F * 2), attack.m_Y);
             }
             else
             {
-                attackCollisionBox = new PosData(attack.m_X + (PLAYER_COLLISION_BOX_X * 2), attack.m_Y);
+                attackCollisionBox = new PosData(attack.m_X + (0.5F * 2), attack.m_Y);
             }
 
-            if (attackCollisionBox.m_X - PLAYER_COLLISION_BOX_X <= hit.m_X &&
-                attackCollisionBox.m_X + PLAYER_COLLISION_BOX_X >= hit.m_X &&
-                attackCollisionBox.m_Y - PLAYER_COLLISION_BOX_Y <= hit.m_Y &&
-                attackCollisionBox.m_Y + PLAYER_COLLISION_BOX_Y >= hit.m_Y)
+            if (attackCollisionBox.m_X - 0.5F <= hit.m_X &&
+                attackCollisionBox.m_X + 0.5F >= hit.m_X &&
+                attackCollisionBox.m_Y - 0.5F <= hit.m_Y &&
+                attackCollisionBox.m_Y + 0.5F >= hit.m_Y)
             {
                 return true;
             }

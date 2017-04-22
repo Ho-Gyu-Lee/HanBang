@@ -13,6 +13,8 @@ public class Enemy : MonoBehaviour
 
     public void Initialize(PLAYER_INDEX playerIndex)
     {
+        m_IsEnemyDie = false;
+
         if (m_EnemyAnimator != null)
             m_EnemyAnimator.SetInteger("ActionControll", 0);
 
