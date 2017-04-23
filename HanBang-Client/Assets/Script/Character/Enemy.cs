@@ -103,6 +103,8 @@ public class Enemy : MonoBehaviour
                 break;
             default:
                 {
+                    if (m_IsEnemyDie) break;
+
                     m_EnemyAnimator.SetInteger("ActionControll", 0);
                 }
                 break;

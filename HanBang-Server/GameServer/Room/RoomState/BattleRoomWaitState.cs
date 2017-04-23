@@ -11,6 +11,7 @@ namespace GameServer.Room.RoomState
 
         public BattleRoomWaitState(BattleRoom battleRoom) : base(battleRoom)
         {
+
         }
 
         public override void Update(double deltatime)

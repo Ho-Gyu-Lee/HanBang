@@ -155,6 +155,8 @@ namespace GameServer.Room
             }
         }
 
+        private volatile bool m_IsWaitState = false;
+
         public void UpdateBattleManager(double deltatime)
         {
             m_GameTimeRemain -= (float)deltatime;
@@ -193,7 +195,13 @@ namespace GameServer.Room
                             m_BattleMembers[PLAYER_INDEX.PLAYER_1].BattleMemberData.m_KillCount++;
                             break;
                     }
+
+                    m_IsWaitState = true;
                 }
+
+                Console.WriteLine(GetRoomState());
+                Console.WriteLine(m_Frame);
+                Console.WriteLine(m_BattleMembers[PLAYER_INDEX.PLAYER_1].MemberActionType.ToString() + ", " + m_BattleMembers[PLAYER_INDEX.PLAYER_2].MemberActionType.ToString());
             }
         }
 
@@ -249,11 +257,21 @@ namespace GameServer.Room
                         ChangeBattleRoomState(ROOM_STATE.END);
                     }
 
+                    if(m_IsWaitState == true)
+                    {
+                        ChangeBattleRoomState(ROOM_STATE.WAIT);
+                        m_IsWaitState = false;
+                    }
+
+                    /*
                     foreach (BattleMember member in m_BattleMembers.Values)
                     {
                         if (member.MemberActionType == ACTION_TYPE.DIE)
+                        {
                             ChangeBattleRoomState(ROOM_STATE.WAIT);
+                        }
                     }
+                    */
                 }
 
                 BattleRoomState.Update(m_Time.DeltaTime);

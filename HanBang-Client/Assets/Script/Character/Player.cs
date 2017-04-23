@@ -260,6 +260,8 @@ public class Player : MonoBehaviour
                 break;
             default:
                 {
+                    if (m_IsPlayerDie) break;
+
                     m_PlayerAnimator.SetInteger("ActionControll", 0);
                 }
                 break;
