@@ -27,10 +27,12 @@ namespace GameServer.Battle
 
         public ConcurrentQueue<ActionData> ActionDataQueue { get; private set; }
 
+        public object m_ActioLock = new object();
+
         public ACTION_TYPE MemberActionType
         {
-            get { return m_BattleMemberData.m_ActionType; }
-            set { m_BattleMemberData.m_ActionType = value; }
+            get { lock(m_ActioLock) return m_BattleMemberData.m_ActionType; }
+            set { lock(m_ActioLock) m_BattleMemberData.m_ActionType = value; }
         }
 
         public BattleMember(PLAYER_INDEX playerIndex, GameSession session)

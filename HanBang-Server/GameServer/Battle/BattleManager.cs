@@ -65,10 +65,10 @@ namespace GameServer.Battle
                 attackCollisionBox = new PosData(attack.m_X + (0.5F * 2), attack.m_Y);
             }
 
-            if (attackCollisionBox.m_X - 0.5F <= hit.m_X &&
-                attackCollisionBox.m_X + 0.5F >= hit.m_X &&
-                attackCollisionBox.m_Y - 0.5F <= hit.m_Y &&
-                attackCollisionBox.m_Y + 0.5F >= hit.m_Y)
+            if (attackCollisionBox.m_X - 0.7F <= hit.m_X &&
+                attackCollisionBox.m_X + 0.7F >= hit.m_X &&
+                attackCollisionBox.m_Y - 0.6F <= hit.m_Y &&
+                attackCollisionBox.m_Y + 0.6F >= hit.m_Y)
             {
                 return true;
             }

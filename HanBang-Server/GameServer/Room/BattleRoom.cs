@@ -107,8 +107,11 @@ namespace GameServer.Room
 
         public void OnOnBattleMemberActionData(PLAYER_INDEX playerIndex, CSBattleMemberActionData data)
         {
-            if (m_BattleMembers.ContainsKey(playerIndex))
-                m_BattleMembers[playerIndex].ActionDataQueue.Enqueue(new ActionData() { m_Frame = data.m_Frame, m_ActionType = data.m_ActionType });
+            if (GetRoomState() == ROOM_STATE.PLAY)
+            {
+                if (m_BattleMembers.ContainsKey(playerIndex))
+                    m_BattleMembers[playerIndex].MemberActionType = data.m_ActionType;
+            }
         }
 
         public void OnBattleMemberData()
@@ -159,20 +162,6 @@ namespace GameServer.Room
             // 이동 처리
             foreach (BattleMember member in m_BattleMembers.Values)
             {
-                ActionData data = null;
-                while (true)
-                {
-                    if (member.ActionDataQueue.IsEmpty) break;
-
-                    if (member.ActionDataQueue.TryDequeue(out data))
-                    {
-                        if (data.m_Frame == m_Frame)
-                        {
-                            member.MemberActionType = data.m_ActionType;
-                            break;
-                        }
-                    }
-                }
                 m_BattleManager.UpdatePlayerTerrainMove(deltatime, member, BattleTerrainData);
             }
 
