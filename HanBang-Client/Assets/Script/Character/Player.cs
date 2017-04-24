@@ -56,19 +56,19 @@ public class Player : MonoBehaviour
 
         // UI Setting
         CustomButton leftButton = GameObject.Find("Left").GetComponent<CustomButton>();
-        leftButton.ButtonDown += SendPlayerLeftMove;
+        leftButton.ButtonEnter += SendPlayerLeftMove;
         leftButton.ButtonUp   += SendPlayerIdle;
 
         CustomButton rightButton = GameObject.Find("Right").GetComponent<CustomButton>();
-        rightButton.ButtonDown += SendPlayerRightMove;
+        rightButton.ButtonEnter += SendPlayerRightMove;
         rightButton.ButtonUp   += SendPlayerIdle;
 
         CustomButton downButton = GameObject.Find("Down").GetComponent<CustomButton>();
-        downButton.ButtonDown += SendPlayerDownMove;
+        downButton.ButtonEnter += SendPlayerDownMove;
         downButton.ButtonUp   += SendPlayerIdle;
 
         CustomButton upButton = GameObject.Find("Up").GetComponent<CustomButton>();
-        upButton.ButtonDown += SendPlayerUpMove;
+        upButton.ButtonEnter += SendPlayerUpMove;
         upButton.ButtonUp   += SendPlayerIdle;
 
         Button attackButton = GameObject.Find("Attack").GetComponent<Button>();

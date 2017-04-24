@@ -38,6 +38,7 @@ namespace GameServer.Common.Packet
         PLAYER_2 = 1,
     }
 
+    [MessagePackEnum]
     public enum WAITING_TYPE
     {
         NONE,

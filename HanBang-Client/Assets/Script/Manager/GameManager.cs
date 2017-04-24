@@ -55,6 +55,24 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Screen.SetResolution(1280, 720, false);
+
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<PACKET_TYPE>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<ACTION_TYPE>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<WAITING_TYPE>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<PLAYER_INDEX>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<PosData>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<ObstacleData>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<BattleTerrainData>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<BattleMemberData>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<CSBattleMemberActionData>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<SCBattleWatingData>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<SCSyncBattleData>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<SCMatchBattleRoomData>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<SCBattleMemberData>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<int>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<float>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<List<ObstacleData>>();
+        MsgPack.Serialization.MessagePackSerializer.PrepareType<Dictionary<int, BattleMemberData>>();
     }
 
     // Use this for initialization

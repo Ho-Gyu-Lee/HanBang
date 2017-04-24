@@ -84,6 +84,7 @@ public class ClientNetworkManager : MonoBehaviour
 
     public void Connection()
     {
+        //m_Session.Connect("112.152.147.27", 10001);
         m_Session.Connect("127.0.0.1", 10001);
     }
 
