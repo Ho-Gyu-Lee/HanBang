@@ -128,7 +128,7 @@ public class GameManager : MonoBehaviour
     public void InitializePlayer()
     {
         m_PlayerScript.Initialize(PlayerIndex);
-        m_EnemyScript.Initialize(EnumyPlayerIndex);
+        //m_EnemyScript.Initialize(EnumyPlayerIndex);
     }
 
     public void OnPlayerSpawn(PLAYER_INDEX playerIndex, PosData pos)
@@ -144,6 +144,8 @@ public class GameManager : MonoBehaviour
 
         m_PlayerScript = m_Player.GetComponent<Player>();
         m_PlayerScript.Initialize(PlayerIndex);
+
+        ClientNetworkManager.Instance.SendManager.SendCSReadyBattle();
     }
 
     public void OnEnemySpawn(PLAYER_INDEX playerIndex, PosData pos)

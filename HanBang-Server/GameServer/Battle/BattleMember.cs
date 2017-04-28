@@ -1,6 +1,5 @@
 ﻿using GameServer.Common.Packet;
-using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace GameServer.Battle
 {
@@ -18,7 +17,7 @@ namespace GameServer.Battle
 
         public bool MemberLook = false;
 
-        public ConcurrentQueue<ACTION_TYPE> ActionDataQueue { get; set; }
+        public Queue<ACTION_TYPE> ActionDataQueue { get; set; }
 
         public BattleMember(PLAYER_INDEX playerIndex, GameSession session)
         {

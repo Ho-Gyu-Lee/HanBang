@@ -1,12 +1,11 @@
 ﻿using GameServer.Battle;
 using GameServer.Common.Packet;
+using GameServer.Common.Util;
 using GameServer.Room.RoomState;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
-using GameServer.Common.Util;
 
 namespace GameServer.Room
 {
@@ -111,7 +110,7 @@ namespace GameServer.Room
             {
                 if (m_BattleMembers.ContainsKey(playerIndex))
                 {
-                    m_BattleMembers[playerIndex].ActionDataQueue = new ConcurrentQueue<ACTION_TYPE>(data.m_ActionQueue);
+                    m_BattleMembers[playerIndex].ActionDataQueue = new Queue<ACTION_TYPE>(data.m_ActionQueue);
                 }
             }
         }
@@ -157,52 +156,70 @@ namespace GameServer.Room
             }
         }
 
-        private volatile bool m_IsWaitState = false;
-
         public void UpdateBattleManager(double deltatime)
         {
             m_GameTimeRemain -= (float)deltatime;
 
-            /*
-            // 이동 처리
-            foreach (BattleMember member in m_BattleMembers.Values)
+            while (true)
             {
-                m_BattleManager.UpdatePlayerTerrainMove(deltatime, member, BattleTerrainData);
-            }
+                ACTION_TYPE member1Action = ACTION_TYPE.NONE;
+                ACTION_TYPE member2Action = ACTION_TYPE.NONE;
 
-            if (m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1) && m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
-                m_BattleManager.UpdatePlayersCollision(deltatime, m_BattleMembers[PLAYER_INDEX.PLAYER_1], m_BattleMembers[PLAYER_INDEX.PLAYER_2]);
-
-            // 공격 판정
-            PLAYER_INDEX loserPlayer = PLAYER_INDEX.NONE;
-            if (MemberCount == MAX_MEMBER_COUNT && 
-                m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1) && 
-                m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
-            {
-                loserPlayer = m_BattleManager.UpdateGameResult(m_BattleMembers[PLAYER_INDEX.PLAYER_1], m_BattleMembers[PLAYER_INDEX.PLAYER_2]);
-            }
-
-            if (loserPlayer != PLAYER_INDEX.NONE)
-            {
-                // 승리 처리
-                if (m_BattleMembers.ContainsKey(loserPlayer))
+                if (m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1))
                 {
-                    m_BattleMembers[loserPlayer].MemberActionType = ACTION_TYPE.DIE;
+                    if(m_BattleMembers[PLAYER_INDEX.PLAYER_1].ActionDataQueue != null && m_BattleMembers[PLAYER_INDEX.PLAYER_1].ActionDataQueue.Count > 0)
+                        member1Action = m_BattleMembers[PLAYER_INDEX.PLAYER_1].ActionDataQueue.Dequeue();
 
-                    switch (loserPlayer)
+                    m_BattleManager.UpdatePlayerTerrainMove(deltatime, member1Action, m_BattleMembers[PLAYER_INDEX.PLAYER_1].MemberPos, BattleTerrainData);
+                }
+
+                if (m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
+                {
+                    if (m_BattleMembers[PLAYER_INDEX.PLAYER_2].ActionDataQueue != null && m_BattleMembers[PLAYER_INDEX.PLAYER_2].ActionDataQueue.Count > 0)
+                        member2Action = m_BattleMembers[PLAYER_INDEX.PLAYER_2].ActionDataQueue.Dequeue();
+
+                    m_BattleManager.UpdatePlayerTerrainMove(deltatime, member2Action, m_BattleMembers[PLAYER_INDEX.PLAYER_2].MemberPos, BattleTerrainData);
+                }
+
+                if (m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1) && m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
+                    m_BattleManager.UpdatePlayersCollision(deltatime, member1Action, m_BattleMembers[PLAYER_INDEX.PLAYER_1].MemberPos, member2Action, m_BattleMembers[PLAYER_INDEX.PLAYER_2].MemberPos);
+
+                PLAYER_INDEX loserPlayer = PLAYER_INDEX.NONE;
+                if (MemberCount == MAX_MEMBER_COUNT &&
+                    m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_1) &&
+                    m_BattleMembers.ContainsKey(PLAYER_INDEX.PLAYER_2))
+                {
+                    loserPlayer = m_BattleManager.UpdateGameResult(member1Action, m_BattleMembers[PLAYER_INDEX.PLAYER_1].MemberPos, member2Action, m_BattleMembers[PLAYER_INDEX.PLAYER_2].MemberPos);
+                }
+
+                if (loserPlayer != PLAYER_INDEX.NONE)
+                {
+                    // 승리 처리
+                    if (m_BattleMembers.ContainsKey(loserPlayer))
                     {
-                        case PLAYER_INDEX.PLAYER_1:
-                            m_BattleMembers[PLAYER_INDEX.PLAYER_2].BattleMemberData.m_KillCount++;
-                            break;
-                        case PLAYER_INDEX.PLAYER_2:
-                            m_BattleMembers[PLAYER_INDEX.PLAYER_1].BattleMemberData.m_KillCount++;
-                            break;
+                        switch (loserPlayer)
+                        {
+                            case PLAYER_INDEX.PLAYER_1:
+                                m_BattleMembers[PLAYER_INDEX.PLAYER_2].BattleMemberData.m_KillCount++;
+                                break;
+                            case PLAYER_INDEX.PLAYER_2:
+                                m_BattleMembers[PLAYER_INDEX.PLAYER_1].BattleMemberData.m_KillCount++;
+                                break;
+                        }
                     }
 
-                    m_IsWaitState = true;
+                    break;
                 }
+
+                bool nextTick = false;
+                foreach (BattleMember member in m_BattleMembers.Values)
+                {
+                    if (member.ActionDataQueue.Count > 0)
+                        nextTick = true;
+                }
+
+                if (nextTick == false) break;
             }
-            */
         }
 
         public ROOM_STATE GetRoomState() { lock (StateLock) return State; }
@@ -256,12 +273,6 @@ namespace GameServer.Room
                     {
                         ChangeBattleRoomState(ROOM_STATE.END);
                     }
-
-                    if(m_IsWaitState == true)
-                    {
-                        ChangeBattleRoomState(ROOM_STATE.WAIT);
-                        m_IsWaitState = false;
-                    }
                 }
 
                 BattleRoomState.Update(m_Time.DeltaTime);
@@ -306,7 +317,7 @@ namespace GameServer.Room
                     break;
             }
 
-            if (m_IsReadyPlayer1 && m_IsReadyPlayer2)
+            //if (m_IsReadyPlayer1 && m_IsReadyPlayer2)
             {
                 m_Time = new Time();
                 m_BattleRoomTimer = new System.Threading.Timer(Update, new object(), 0, 1000 / 60);

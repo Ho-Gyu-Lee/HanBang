@@ -15,7 +15,7 @@ namespace GameServer.Battle
 
         private Random m_BattleRandom = new Random(Guid.NewGuid().GetHashCode());
 
-        public PLAYER_INDEX UpdateGameResult(PosData member1Pos, ACTION_TYPE member1Action, PosData member2Pos, ACTION_TYPE member2Action)
+        public PLAYER_INDEX UpdateGameResult(ACTION_TYPE member1Action, PosData member1Pos, ACTION_TYPE member2Action, PosData member2Pos)
         {
             if (member1Pos != null && member2Pos != null)
             {
