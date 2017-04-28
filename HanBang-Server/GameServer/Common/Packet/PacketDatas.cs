@@ -8,6 +8,7 @@ namespace GameServer.Common.Packet
     {
         NONE = 1000,
         CS_BATTLE_MEMBER_ACTION_DATA,
+        SC_BATTLE_MEMBER_ACTION_DATA,
         SC_SYNC_BATTLE,
         CS_MATCH_BATTLE_ROOM,
         SC_MATCH_BATTLE_ROOM,
@@ -38,6 +39,7 @@ namespace GameServer.Common.Packet
         PLAYER_2 = 1,
     }
 
+    [MessagePackEnum]
     public enum WAITING_TYPE
     {
         NONE,
@@ -116,13 +118,10 @@ namespace GameServer.Common.Packet
     public class CSBattleMemberActionData
     {
         [MessagePackMember(0, NilImplication = NilImplication.MemberDefault)]
-        public PLAYER_INDEX m_PlayerIndex = PLAYER_INDEX.NONE;
-
-        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
         public int m_Frame = 0;
 
-        [MessagePackMember(2, NilImplication = NilImplication.MemberDefault)]
-        public ACTION_TYPE m_ActionType = ACTION_TYPE.NONE;
+        [MessagePackMember(1, NilImplication = NilImplication.MemberDefault)]
+        public Queue<ACTION_TYPE> m_ActionQueue = new Queue<ACTION_TYPE>();
     }
 
     public class SCBattleWatingData

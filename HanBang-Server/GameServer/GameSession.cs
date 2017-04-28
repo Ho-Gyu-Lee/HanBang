@@ -71,8 +71,7 @@ namespace GameServer
                 return;
             }
 
-            data.m_PlayerIndex = m_BattlePlayerIndex;
-            battleRoom.OnOnBattleMemberActionData(m_BattlePlayerIndex, data);
+            battleRoom.OnBattleMemberActionData(m_BattlePlayerIndex, data);
         }
 
         private void OnMatchBattleRoom()
@@ -82,6 +81,8 @@ namespace GameServer
 
             data.m_RoomIndex = m_RoomIndex;
             SendManager.SendSCMatchBattleRoomData(data);
+
+            SendManager.SendSCBattleMemberActionData();
         }
 
         private void OnBattleMemberData()

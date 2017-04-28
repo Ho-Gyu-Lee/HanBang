@@ -105,12 +105,14 @@ namespace GameServer.Room
             #endregion
         }
 
-        public void OnOnBattleMemberActionData(PLAYER_INDEX playerIndex, CSBattleMemberActionData data)
+        public void OnBattleMemberActionData(PLAYER_INDEX playerIndex, CSBattleMemberActionData data)
         {
             if (GetRoomState() == ROOM_STATE.PLAY)
             {
                 if (m_BattleMembers.ContainsKey(playerIndex))
-                    m_BattleMembers[playerIndex].MemberActionType = data.m_ActionType;
+                {
+                    m_BattleMembers[playerIndex].ActionDataQueue = new ConcurrentQueue<ACTION_TYPE>(data.m_ActionQueue);
+                }
             }
         }
 
@@ -161,6 +163,7 @@ namespace GameServer.Room
         {
             m_GameTimeRemain -= (float)deltatime;
 
+            /*
             // 이동 처리
             foreach (BattleMember member in m_BattleMembers.Values)
             {
@@ -198,11 +201,8 @@ namespace GameServer.Room
 
                     m_IsWaitState = true;
                 }
-
-                Console.WriteLine(GetRoomState());
-                Console.WriteLine(m_Frame);
-                Console.WriteLine(m_BattleMembers[PLAYER_INDEX.PLAYER_1].MemberActionType.ToString() + ", " + m_BattleMembers[PLAYER_INDEX.PLAYER_2].MemberActionType.ToString());
             }
+            */
         }
 
         public ROOM_STATE GetRoomState() { lock (StateLock) return State; }
@@ -262,16 +262,6 @@ namespace GameServer.Room
                         ChangeBattleRoomState(ROOM_STATE.WAIT);
                         m_IsWaitState = false;
                     }
-
-                    /*
-                    foreach (BattleMember member in m_BattleMembers.Values)
-                    {
-                        if (member.MemberActionType == ACTION_TYPE.DIE)
-                        {
-                            ChangeBattleRoomState(ROOM_STATE.WAIT);
-                        }
-                    }
-                    */
                 }
 
                 BattleRoomState.Update(m_Time.DeltaTime);

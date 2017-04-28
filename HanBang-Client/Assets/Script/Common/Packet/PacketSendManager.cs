@@ -35,6 +35,12 @@ namespace GameServer.Common.Packet
             SendHandler((int)PACKET_TYPE.CS_BATTLE_MEMBER_ACTION_DATA, MemStream.GetBuffer(), (int)MemStream.Length);
         }
 
+        public void SendSCBattleMemberActionData()
+        {
+            byte[] buffer = new byte[0];
+            SendHandler((int)PACKET_TYPE.SC_BATTLE_MEMBER_ACTION_DATA, buffer, buffer.Length);
+        }
+
         public void SendSCSyncBattleData(SCSyncBattleData data)
         {
             MemStream.SetLength(0);

@@ -10,6 +10,9 @@ namespace GameServer.Common.Packet
         public delegate void OnCSBattleMemberActionDataDelegate(CSBattleMemberActionData data);
         public OnCSBattleMemberActionDataDelegate CSBattleMemberActionData;
 
+        public delegate void OnSCBattleMemberActionDataDelegate();
+        public OnSCBattleMemberActionDataDelegate SCBattleMemberActionData;
+
         public delegate void OnSCSyncBattleDataDelegate(SCSyncBattleData data);
         public OnSCSyncBattleDataDelegate SCSyncBattleData;
 
@@ -46,6 +49,12 @@ namespace GameServer.Common.Packet
                     {
                         MessagePackSerializer<CSBattleMemberActionData> derializer = MsgPack.Serialization.SerializationContext.Default.GetSerializer<CSBattleMemberActionData>();
                         CSBattleMemberActionData(derializer.Unpack(m_MemStream));
+                    }
+                    break;
+
+                case PACKET_TYPE.SC_BATTLE_MEMBER_ACTION_DATA:
+                    {
+                        SCBattleMemberActionData();
                     }
                     break;
 

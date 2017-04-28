@@ -44,6 +44,8 @@ public class GameManager : MonoBehaviour
     private Text m_Player1KillCountText = null;
     private Text m_Player2KillCountText = null;
 
+    private CSBattleMemberActionData m_Player1ActionData = new CSBattleMemberActionData();
+
     private List<string> m_CharacterResourcesName = new List<string>();
 
     public int RoomIndex { get; private set; }
@@ -190,6 +192,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void SendBattleMemberActionData(ACTION_TYPE action)
+    {
+        m_Player1ActionData.m_ActionQueue.Enqueue(action);
+    }
+
+    public void OnSCBattleMemberActionData()
+    {
+        m_Player1ActionData.m_ActionQueue.Clear();
+    }
+
     public void OnSyncBattle(SCSyncBattleData data)
     {
         m_BattleTimeText.text = "남은 시간 : " + data.m_GameTimeRemain.ToString();
@@ -217,7 +229,7 @@ public class GameManager : MonoBehaviour
                 gameObject.transform.position = new Vector3(member.m_Pos.m_X, member.m_Pos.m_Y, 0);
         }
 
-        m_PlayerScript.BattleMemberActionData.m_Frame = data.m_Frame + 1;
-        ClientNetworkManager.Instance.SendManager.SendCSBattleMemberActionData(m_PlayerScript.BattleMemberActionData);
+        m_Player1ActionData.m_Frame = data.m_Frame;
+        ClientNetworkManager.Instance.SendManager.SendCSBattleMemberActionData(m_Player1ActionData);
     }
 }

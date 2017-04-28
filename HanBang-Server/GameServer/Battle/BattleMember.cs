@@ -4,13 +4,6 @@ using System.Collections.Concurrent;
 
 namespace GameServer.Battle
 {
-    public class ActionData
-    {
-        public int m_Frame = -1;
-
-        public ACTION_TYPE m_ActionType = ACTION_TYPE.NONE;
-    }
-
     class BattleMember
     {
         private BattleMemberData m_BattleMemberData = new BattleMemberData();
@@ -25,23 +18,13 @@ namespace GameServer.Battle
 
         public bool MemberLook = false;
 
-        public ConcurrentQueue<ActionData> ActionDataQueue { get; private set; }
-
-        public object m_ActioLock = new object();
-
-        public ACTION_TYPE MemberActionType
-        {
-            get { lock(m_ActioLock) return m_BattleMemberData.m_ActionType; }
-            set { lock(m_ActioLock) m_BattleMemberData.m_ActionType = value; }
-        }
+        public ConcurrentQueue<ACTION_TYPE> ActionDataQueue { get; set; }
 
         public BattleMember(PLAYER_INDEX playerIndex, GameSession session)
         {
             GameSession = session;
 
             m_BattleMemberData.m_PlayerIndex = playerIndex;
-
-            ActionDataQueue = new ConcurrentQueue<ActionData>();
 
             Initialize();
         }
@@ -53,8 +36,6 @@ namespace GameServer.Battle
                 case PLAYER_INDEX.PLAYER_1:
                     {
                         MemberLook = false;
-                        MemberActionType = ACTION_TYPE.NONE;
-
                         m_BattleMemberData.m_Pos = new PosData(-3.0F, 0.0F);
 
                     }
@@ -62,8 +43,6 @@ namespace GameServer.Battle
                 case PLAYER_INDEX.PLAYER_2:
                     {
                         MemberLook = true;
-                        MemberActionType = ACTION_TYPE.NONE;
-
                         m_BattleMemberData.m_Pos = new PosData(3.0F, 0.0F);
                     }
                     break;
