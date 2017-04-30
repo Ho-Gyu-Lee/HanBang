@@ -199,11 +199,6 @@ public class GameManager : MonoBehaviour
         m_Player1ActionData.m_ActionQueue.Enqueue(action);
     }
 
-    public void OnSCBattleMemberActionData()
-    {
-        m_Player1ActionData.m_ActionQueue.Clear();
-    }
-
     public void OnSyncBattle(SCSyncBattleData data)
     {
         m_BattleTimeText.text = "남은 시간 : " + data.m_GameTimeRemain.ToString();
@@ -233,5 +228,6 @@ public class GameManager : MonoBehaviour
 
         m_Player1ActionData.m_Frame = data.m_Frame;
         ClientNetworkManager.Instance.SendManager.SendCSBattleMemberActionData(m_Player1ActionData);
+        m_Player1ActionData.m_ActionQueue.Clear();
     }
 }

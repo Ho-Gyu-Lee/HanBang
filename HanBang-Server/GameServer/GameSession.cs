@@ -81,8 +81,6 @@ namespace GameServer
 
             data.m_RoomIndex = m_RoomIndex;
             SendManager.SendSCMatchBattleRoomData(data);
-
-            SendManager.SendSCBattleMemberActionData();
         }
 
         private void OnBattleMemberData()

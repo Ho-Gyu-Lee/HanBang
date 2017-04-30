@@ -8,7 +8,6 @@ namespace GameServer.Common.Packet
     {
         NONE = 1000,
         CS_BATTLE_MEMBER_ACTION_DATA,
-        SC_BATTLE_MEMBER_ACTION_DATA,
         SC_SYNC_BATTLE,
         CS_MATCH_BATTLE_ROOM,
         SC_MATCH_BATTLE_ROOM,
